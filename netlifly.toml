@@ -1,0 +1,18 @@
+# No build step; publish the repo root
+[build]
+  publish = "."
+
+# Security & basic caching headers (nice-to-have)
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "SAMEORIGIN"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+# Optional: force HTTPS
+[[redirects]]
+  from = "http://*canyonlandtech.com/*"
+  to = "https://canyonlandtech.com/:splat"
+  status = 301
+  force = true
