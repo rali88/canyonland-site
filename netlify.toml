@@ -1,18 +1,28 @@
-# No build step; publish the repo root
-[build]
-  publish = "."
+# netlify.toml
+# Configuration for Netlify deploys
 
-# Security & basic caching headers (nice-to-have)
+[build]
+  publish = "."       # Serve files from the root (index.html, etc.)
+  command = ""        # No build step needed for plain HTML/CSS/JS
+
+# Redirects
+[[redirects]]
+  from = "http://canyonlandtech.com/*"
+  to = "https://www.canyonlandtech.com/:splat"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "https://canyonlandtech.com/*"
+  to = "https://www.canyonlandtech.com/:splat"
+  status = 301
+  force = true
+
+# Security headers
 [[headers]]
   for = "/*"
   [headers.values]
     X-Frame-Options = "SAMEORIGIN"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
-
-# Optional: force HTTPS
-[[redirects]]
-  from = "http://*canyonlandtech.com/*"
-  to = "https://canyonlandtech.com/:splat"
-  status = 301
-  force = true
+    Strict-Transport-Security = "max-age=31536000; includeSubDomains; preload"
