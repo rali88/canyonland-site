@@ -5,24 +5,9 @@
   publish = "."       # Serve files from the root (index.html, etc.)
   command = ""        # No build step needed for plain HTML/CSS/JS
 
-# Redirects
+# Redirect www to root
 [[redirects]]
-  from = "http://canyonlandtech.com/*"
-  to = "https://www.canyonlandtech.com/:splat"
+  from = "https://www.yourdomain.com/*"
+  to = "https://yourdomain.com/:splat"
   status = 301
   force = true
-
-[[redirects]]
-  from = "https://canyonlandtech.com/*"
-  to = "https://www.canyonlandtech.com/:splat"
-  status = 301
-  force = true
-
-# Security headers
-[[headers]]
-  for = "/*"
-  [headers.values]
-    X-Frame-Options = "SAMEORIGIN"
-    X-Content-Type-Options = "nosniff"
-    Referrer-Policy = "strict-origin-when-cross-origin"
-    Strict-Transport-Security = "max-age=31536000; includeSubDomains; preload"
