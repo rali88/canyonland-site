@@ -1,16 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Canyonland Technologies Inc. — BI & Analytics Consulting</title>
-  <meta name="description" content="Canyonland Technologies Inc. — end-to-end Business Intelligence and Data Analytics consulting: strategy, data engineering, dashboards, AI enablement." />
+  <meta name="description"
+    content="Canyonland Technologies Inc. — end-to-end Business Intelligence and Data Analytics consulting: strategy, data engineering, dashboards, AI enablement." />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="styles.css" />
 </head>
+
 <body>
   <header class="site-header">
     <div class="container">
@@ -33,7 +36,8 @@
       <div class="container hero-grid">
         <div>
           <h1>Turn your data into confident decisions.</h1>
-          <p class="lead">We deliver end-to-end <strong>BI and Analytics</strong>—from data engineering and governance to executive-ready dashboards and AI-assisted insights.</p>
+          <p class="lead">We deliver end-to-end <strong>BI and Analytics</strong>—from data engineering and governance
+            to executive-ready dashboards and AI-assisted insights.</p>
           <div class="cta">
             <a href="#contact" class="btn">Get a free consult</a>
             <a href="#services" class="btn btn-ghost">Explore services</a>
@@ -67,7 +71,8 @@
         <div class="cards three">
           <article class="card">
             <h3>Data Engineering</h3>
-            <p>Modern ETL/ELT, lake/warehouse design, orchestration, and quality—built for scale and governed for trust.</p>
+            <p>Modern ETL/ELT, lake/warehouse design, orchestration, and quality—built for scale and governed for trust.
+            </p>
             <ul>
               <li>SQL Server, Databricks, Snowflake</li>
               <li>Python pipelines, dbt</li>
@@ -126,7 +131,8 @@
       <div class="container two-col">
         <div>
           <h2>About Canyonland</h2>
-          <p>Canyonland Technologies Inc. is a Chicago-based BI & Analytics consultancy. We combine strong data engineering, practical AI, and crisp visualization to help teams move faster with fewer risks.</p>
+          <p>Canyonland Technologies Inc. is a Chicago-based BI & Analytics consultancy. We combine strong data
+            engineering, practical AI, and crisp visualization to help teams move faster with fewer risks.</p>
           <ul class="contact-list">
             <li><strong>Address:</strong> 205 North Michigan Avenue, Suite 810, Chicago, IL 60601</li>
             <li><strong>Phone:</strong> <a href="tel:+17087656254">+1 (708) 765-6254</a></li>
@@ -150,20 +156,30 @@
         <p>Tell us about your project. We usually reply within one business day.</p>
 
         <!-- Netlify-compatible static form -->
-        <form name="contact" method="POST" data-netlify="true" action="/success.html" class="contact-form">
+        <form name="contact" method="POST" data-netlify="true" netlify-honeypot="bot-field" action="success.html"
+          class="contact-form">
           <input type="hidden" name="form-name" value="contact" />
+
+          <!-- Honeypot field (hidden from real users) -->
+          <p style="position:absolute; left:-9999px;">
+            <label>Don’t fill this out: <input name="bot-field" /></label>
+          </p>
+
           <div class="form-row">
             <label for="name">Name</label>
             <input id="name" name="name" required />
           </div>
+
           <div class="form-row">
             <label for="email">Email</label>
             <input id="email" type="email" name="email" required />
           </div>
+
           <div class="form-row">
             <label for="message">Message</label>
             <textarea id="message" name="message" rows="5" required></textarea>
           </div>
+
           <button type="submit" class="btn">Send message</button>
         </form>
         <p class="tiny">Prefer email? <a href="mailto:info@canyonlandtech.com">info@canyonlandtech.com</a></p>
@@ -187,4 +203,5 @@
 
   <script src="script.js"></script>
 </body>
+
 </html>
