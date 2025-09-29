@@ -74,3 +74,24 @@ input:focus, textarea:focus{outline:2px solid var(--brand);border-color:transpar
   .nav-toggle{display:block}
 }
 .tiny{font-size:.9rem;color:var(--muted)}
+/* --- Logo sizing --- */
+
+/* Header: your <a class="logo"><img ...></a> pattern */
+.logo img {
+  width: 180px;   /* header size */
+  height: auto;
+  display: block;
+}
+
+/* Footer: the logo inside the footer brand block */
+.site-footer .foot-brand img {
+  width: 140px;   /* footer size */
+  height: auto;
+}
+
+/* Responsive tweak */
+@media (max-width: 768px) {
+  .logo img { width: 150px; }
+  .site-footer .foot-brand img { width: 130px; }
+}
+
