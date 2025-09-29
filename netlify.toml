@@ -5,7 +5,7 @@
   publish = "."       # Serve files from the root (index.html, etc.)
   command = ""        # No build step needed for plain HTML/CSS/JS
 
-# Redirects
+# Redirect www to root
 [[redirects]]
   from = "http://canyonlandtech.com/*"
   to = "https://www.canyonlandtech.com/:splat"
