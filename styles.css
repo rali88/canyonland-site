@@ -155,6 +155,13 @@ img{max-width:100%}
 .case-foot .stages{color:var(--accent);text-transform:uppercase;letter-spacing:.12em}
 .case-note{margin-top:clamp(30px,4vw,44px);font-size:.9rem;color:var(--ink-3);max-width:var(--measure)}
 
+/* ---------- Inline code ---------- */
+code{
+  font-family:var(--mono);font-size:.88em;color:var(--ink);
+  background:var(--ground-2);border:1px solid var(--rule);
+  padding:.08em .34em;border-radius:0;
+}
+
 /* ---------- Two-column prose ---------- */
 .split{display:grid;grid-template-columns:1.5fr 1fr;gap:clamp(32px,6vw,84px);align-items:start}
 .split p + p{margin-top:1.1rem}
