@@ -1,0 +1,95 @@
+# Netlify keeps the head deploy of every context forever, Deploy Previews
+# included, so a merged PR leaves its preview publicly reachable indefinitely.
+# Automatic deletion never reaches them and the retention setting is
+# Enterprise-only. This removes a PR's previews when it closes, so stale builds
+# do not outlive the branch that produced them.
+#
+# Requires two repository secrets:
+#   NETLIFY_AUTH_TOKEN  a personal access token with access to the site
+#   NETLIFY_SITE_ID     the site's API ID (Netlify → Project configuration →
+#                       General → Project information → Project ID)
+
+name: Delete deploy preview
+
+on:
+  pull_request:
+    types: [closed]
+
+# Nothing in the repository is read or written; the work is all Netlify-side.
+permissions: {}
+
+concurrency:
+  group: delete-preview-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  delete-preview:
+    runs-on: ubuntu-latest
+    # Forked PRs do not receive secrets, so the job would fail noisily for
+    # nothing. Previews for forks have to be cleaned up by hand.
+    if: github.event.pull_request.head.repo.full_name == github.repository
+
+    steps:
+      - name: Delete this PR's Netlify deploy previews
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${NETLIFY_AUTH_TOKEN:-}" ] || [ -z "${NETLIFY_SITE_ID:-}" ]; then
+            echo "::warning::NETLIFY_AUTH_TOKEN or NETLIFY_SITE_ID is not set; skipping."
+            exit 0
+          fi
+
+          API="https://api.netlify.com/api/v1"
+          AUTH="Authorization: Bearer ${NETLIFY_AUTH_TOKEN}"
+
+          # A PR can have several preview deploys — one per push. Collect every
+          # deploy whose context is deploy-preview and whose review_id is this
+          # PR, walking pages until one comes back empty. The cap stops a
+          # surprise from turning into an unbounded loop.
+          ids=""
+          page=1
+          while [ "$page" -le 20 ]; do
+            body=$(curl -sS --fail-with-body -H "$AUTH" \
+              "${API}/sites/${NETLIFY_SITE_ID}/deploys?page=${page}&per_page=100") || {
+              echo "::error::Failed to list deploys (page ${page}). Check the token and site id."
+              exit 1
+            }
+
+            count=$(printf '%s' "$body" | jq 'length')
+            [ "$count" -eq 0 ] && break
+
+            match=$(printf '%s' "$body" | jq -r --argjson pr "$PR_NUMBER" \
+              '.[] | select(.context == "deploy-preview" and .review_id == $pr) | .id')
+            [ -n "$match" ] && ids="${ids}${match}"$'\n'
+
+            page=$((page + 1))
+          done
+
+          ids=$(printf '%s' "$ids" | sed '/^$/d')
+          if [ -z "$ids" ]; then
+            echo "No deploy previews found for PR #${PR_NUMBER}; nothing to delete."
+            exit 0
+          fi
+
+          echo "Deleting $(printf '%s\n' "$ids" | wc -l) deploy(s) for PR #${PR_NUMBER}:"
+          failed=0
+          while IFS= read -r id; do
+            [ -z "$id" ] && continue
+            # 404 means it is already gone, which is the desired end state.
+            code=$(curl -sS -o /dev/null -w '%{http_code}' -X DELETE -H "$AUTH" \
+              "${API}/deploys/${id}") || code="000"
+            case "$code" in
+              204|404) echo "  ${id}  ${code}" ;;
+              *)       echo "  ${id}  ${code}  FAILED"; failed=1 ;;
+            esac
+          done <<< "$ids"
+
+          if [ "$failed" -ne 0 ]; then
+            echo "::error::One or more deploys could not be deleted."
+            exit 1
+          fi
+          echo "Done."
