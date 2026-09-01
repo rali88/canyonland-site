@@ -5,54 +5,59 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Page not found | Canyonland Technologies Inc.</title>
+  <meta name="description" content="That page could not be found on canyonlandtech.com." />
   <meta name="robots" content="noindex, follow" />
-  <meta name="theme-color" content="#d35300" />
+  <meta name="theme-color" content="#14181d" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Playfair+Display:wght@600;700;800&display=swap"
+    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap"
     rel="stylesheet">
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon-192.png">
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png">
   <link rel="stylesheet" href="/styles.css" />
 </head>
 
 <body>
-  <header class="site-header">
-    <div class="container">
-      <a class="logo" href="/" aria-label="Canyonland Technologies Inc. — home">
+  <a class="skip" href="#main">Skip to content</a>
+
+  <header class="masthead">
+    <div class="wrap">
+      <a class="mark" href="/" aria-label="Canyonland Technologies Inc. — home">
         <img src="/assets/logo-400.png" width="400" height="180" alt="Canyonland Technologies Inc.">
       </a>
-      <nav class="nav" id="primary-nav" aria-label="Primary">
-        <a href="/#services">Services</a>
+      <nav class="menu" id="menu" aria-label="Primary">
+        <a href="/#lifecycle">Lifecycle</a>
         <a href="/#work">Work</a>
+        <a href="/#focus">Focus</a>
         <a href="/#about">About</a>
-        <a href="/#contact" class="btn btn-small">Contact</a>
+        <a href="/#contact" class="cta-link">Contact</a>
       </nav>
-      <button class="nav-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="primary-nav">☰</button>
+      <button class="menu-btn" aria-label="Open menu" aria-expanded="false" aria-controls="menu">☰</button>
     </div>
   </header>
 
-  <main class="section">
-    <div class="container" style="max-width:640px">
+  <main class="hero" id="main">
+    <div class="wrap">
       <p class="eyebrow">Error 404</p>
       <h1>That page isn't here.</h1>
-      <p class="lead">The link may be out of date, or the address slightly off. Everything lives on the homepage.</p>
-      <div class="cta" style="margin-top:26px">
+      <p class="standfirst narrow">The link may be out of date, or the address slightly off. Everything lives on the homepage.</p>
+      <div class="hero-actions">
         <a href="/" class="btn">Back to homepage</a>
-        <a href="/#contact" class="btn btn-ghost">Contact us</a>
+        <a href="/#contact" class="btn btn--quiet">Contact us</a>
       </div>
     </div>
   </main>
 
-  <footer class="site-footer">
-    <div class="container foot-grid">
-      <div class="foot-brand">
+  <footer class="foot">
+    <div class="wrap">
+      <div>
         <img src="/assets/logo-320.png" width="320" height="144" alt="Canyonland Technologies Inc.">
-        <p>© <span id="year"></span> Canyonland Technologies Inc. All rights reserved.</p>
+        <p>© <span id="year"></span> Canyonland Technologies Inc.</p>
       </div>
-      <nav class="foot-nav" aria-label="Footer">
-        <a href="/#services">Services</a>
+      <nav aria-label="Footer">
+        <a href="/#lifecycle">Lifecycle</a>
         <a href="/#work">Work</a>
         <a href="/#about">About</a>
         <a href="/#contact">Contact</a>

@@ -3,8 +3,8 @@ const yearEl = document.querySelector('#year');
 if (yearEl) yearEl.textContent = new Date().getFullYear();
 
 // Mobile nav
-const toggle = document.querySelector('.nav-toggle');
-const nav = document.querySelector('.nav');
+const toggle = document.querySelector('.menu-btn');
+const nav = document.querySelector('.menu');
 if (toggle && nav) {
   toggle.addEventListener('click', () => {
     const open = nav.classList.toggle('open');
