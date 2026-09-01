@@ -191,7 +191,8 @@ dev ──commit──▶ push ──▶ PR into main ──▶ review ──▶
     https://api.netlify.com/api/v1/deploys/<deploy_id>
   ```
 
-  That can run from a workflow on PR close, so previews are cleaned up as a
-  matter of course rather than remembered. It needs a Netlify personal access
-  token held as a repository secret — worth weighing, since a token with deploy
-  deletion rights is a meaningful thing to store.
+  `.github/workflows/delete-deploy-preview.yml` does this on PR close, so
+  previews are cleaned up as a matter of course rather than remembered. It needs
+  two repository secrets, `NETLIFY_AUTH_TOKEN` and `NETLIFY_SITE_ID`, and skips
+  with a warning rather than failing if either is absent. Forked PRs receive no
+  secrets, so their previews still need deleting by hand.
