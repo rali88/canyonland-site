@@ -34,3 +34,27 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
     el.focus({ preventScroll: true });
   });
 });
+
+// Portfolio demo: the extractor is ~20KB and most visitors never open it, so
+// it is fetched on request rather than with the page.
+const demoLoad = document.querySelector('#demo-load');
+if (demoLoad) {
+  demoLoad.addEventListener('click', () => {
+    const root = document.querySelector('#demo-root');
+    demoLoad.disabled = true;
+    demoLoad.textContent = 'Loading…';
+    const s = document.createElement('script');
+    s.src = '/estatemap-demo.js';
+    s.onload = () => {
+      root.innerHTML = '';
+      window.EstatemapDemo.mount(root);
+    };
+    s.onerror = () => {
+      demoLoad.disabled = false;
+      demoLoad.textContent = 'Load the demo';
+      const hint = document.querySelector('#demo-hint');
+      if (hint) hint.textContent = 'The demo failed to load. Reload the page and try again.';
+    };
+    document.head.appendChild(s);
+  });
+}
