@@ -152,10 +152,20 @@ dev ──commit──▶ push ──▶ PR into main ──▶ review ──▶
 - The preview's contact form is live. Submissions land in the real Netlify
   Forms inbox, so treat any test submission as a real one.
 - Run the `Before shipping` checks against the deploy preview before merging.
+- **Read the automated review before merging.** Codex reviews every PR in this
+  repo and comments only when it finds something. Three real defects shipped
+  because its findings on merged PRs were never opened. `main` requires
+  conversation resolution, so an unresolved thread now blocks the merge — treat
+  that block as the point of the rule, not an obstacle. Verify each finding
+  against the code rather than accepting or dismissing it on sight, and resolve
+  a thread only once it is actually addressed.
 - After a merge, resync `dev` before starting the next batch of work, or later
-  PRs will surface conflicts that are not really yours:
+  PRs will surface conflicts that are not really yours. Update local `main`
+  first — merging a stale local `main` silently reports everything up to date
+  without taking in the merge:
 
   ```
+  git checkout main && git pull
   git checkout dev && git merge main && git push
   ```
 

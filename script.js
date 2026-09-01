@@ -28,7 +28,12 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
     const el = document.getElementById(id);
     if (!el) return;
     e.preventDefault();
-    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // styles.css sets scroll-behavior:auto under prefers-reduced-motion, but a
+    // scrollIntoView behavior of 'smooth' overrides it, so the stylesheet's
+    // intent has to be honoured here too. Checked per click so a visitor
+    // changing the setting is respected without a reload.
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    el.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
     history.pushState(null, '', '#' + id);
     el.setAttribute('tabindex', '-1');
     el.focus({ preventScroll: true });

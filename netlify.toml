@@ -12,11 +12,17 @@
   status = 301
   force = true
 
-# Long-lived caching for fingerprint-stable static assets
+# Asset filenames here are dimension-based (logo-400.png, favicon-32.png), not
+# content-hashed, so they are mutable: replacing a logo reuses its name. A
+# year-long cache meant returning visitors could keep the old file for up to a
+# year after a change. Fresh for an hour, then served stale only while a
+# revalidation runs in the background, so an updated asset propagates promptly
+# without giving up caching. Restore a long immutable cache only if these names
+# gain content hashes.
 [[headers]]
   for = "/assets/*"
   [headers.values]
-    Cache-Control = "public, max-age=31536000"
+    Cache-Control = "public, max-age=3600, stale-while-revalidate=86400"
 
 [[headers]]
   for = "/*"
