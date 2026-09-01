@@ -39,12 +39,29 @@
 
   var OPEN_MODES = { 'INPUT': 'input', 'OUTPUT': 'output', 'I-O': 'update', 'EXTEND': 'extend' };
 
+  var SQL_DELETE_RE = /\bDELETE\s+FROM\s+([A-Z0-9_.]+)/gi;
   var SQL_TABLE_RES = [
     [/\bINSERT\s+INTO\s+([A-Z0-9_.]+)/gi, 'insert'],
     [/\bUPDATE\s+([A-Z0-9_.]+)/gi, 'update'],
     [/\bDELETE\s+FROM\s+([A-Z0-9_.]+)/gi, 'delete'],
+    /* The bare FROM rule picks up a SELECT's table, but it also matches the
+       FROM in DELETE FROM. Those are masked out before it runs, so a delete is
+       not also reported as a select against the same table. */
     [/\bFROM\s+([A-Z0-9_.]+)/gi, 'select']
   ];
+
+  /* A lone word that is a statement, not a paragraph label. */
+  var NOT_A_LABEL = {
+    'EXIT': 1, 'CONTINUE': 1, 'GOBACK': 1, 'STOP': 1, 'END-EXEC': 1,
+    'END-IF': 1, 'END-PERFORM': 1, 'END-READ': 1, 'END-EVALUATE': 1,
+    'END-CALL': 1, 'END-SEARCH': 1, 'NEXT': 1
+  };
+
+  /* PERFORM followed by one of these is an inline loop, not a paragraph call. */
+  var PERFORM_INLINE = {
+    'VARYING': 1, 'UNTIL': 1, 'TIMES': 1, 'WITH': 1, 'TEST': 1,
+    'FOREVER': 1, 'THRU': 1, 'THROUGH': 1
+  };
 
   var JCL_STATEMENT_RE = /^\/\/([A-Z0-9@#$]{1,8})?\s+([A-Z]+)\s*([\s\S]*)$/i;
   var JCL_CONCAT_RE = /^\/\/\s+(\S[\s\S]*)$/;
@@ -111,10 +128,14 @@
       pending = { text: body.trim(), lineno: i + 1, areaA: areaA };
     }
     if (pending) lines.push(pending);
-    return { lines: lines, comments: comments };
+    return { lines: lines, comments: comments, fixed: fixed };
   }
 
-  /* A period ends a sentence unless it is a decimal point inside a number. */
+  /* A sentence period is always followed by whitespace or the end of the text.
+     A period with anything else after it belongs to whatever it sits inside --
+     a decimal constant, a PIC clause, or a schema-qualified SQL identifier such
+     as APPDB.EMPLOYEE. Splitting on the latter tore EXEC SQL blocks in half and
+     silently lost every SQL fact inside them. */
   function findTerminator(text) {
     var inQuote = null;
     for (var i = 0; i < text.length; i++) {
@@ -122,10 +143,7 @@
       if (inQuote) { if (ch === inQuote) inQuote = null; continue; }
       if (ch === "'" || ch === '"') { inQuote = ch; continue; }
       if (ch === '.') {
-        var nxt = i + 1 < text.length ? text[i + 1] : ' ';
-        var prv = i > 0 ? text[i - 1] : ' ';
-        if (/\d/.test(nxt) && /\d/.test(prv)) continue;
-        return i;
+        if (i + 1 >= text.length || /\s/.test(text[i + 1])) return i;
       }
     }
     return -1;
@@ -320,18 +338,23 @@
       file.recordLayouts = nest(fileItems[file.logicalName] || []);
     });
 
-    parseProcedure(program, procSentences, path);
+    parseProcedure(program, procSentences, path, s.fixed);
     classifyFiles(program, procSentences);
     return program;
   }
 
-  function parseProcedure(program, sentences, path) {
+  function parseProcedure(program, sentences, path, fixedFormat) {
     var current = null;
 
     sentences.forEach(function (s) {
       var text = s.text, bare = text.trim();
       var sec = SECTION_RE.exec(bare);
-      var isLabel = s.areaA && (sec !== null || /^[A-Z0-9][A-Z0-9-]*$/i.test(bare));
+      var loneName = sec !== null || /^[A-Z0-9][A-Z0-9-]*$/i.test(bare);
+      /* Area A exists only in fixed format. Requiring it found no paragraphs
+         at all in indented free-format source, losing every PERFORM edge. */
+      var positioned = s.areaA || !fixedFormat;
+      var isLabel = loneName && positioned &&
+        !NOT_A_LABEL[bare.toUpperCase().replace(/\.$/, '')];
 
       if (isLabel) {
         current = {
@@ -343,10 +366,18 @@
         return;
       }
 
-      var perfRe = /\bPERFORM\s+([A-Z0-9][A-Z0-9-]*)(?:\s+(?:THRU|THROUGH)\s+([A-Z0-9][A-Z0-9-]*))?/gi, p;
+      /* The leading alternation stops the PERFORM inside END-PERFORM from
+         matching. A plain \b matched there, and because that match consumed
+         the next PERFORM keyword, it both invented a "PERFORM" target and lost
+         the real one following it. */
+      var perfRe = /(?:^|[^A-Z0-9-])PERFORM\s+([A-Z0-9][A-Z0-9-]*)(?:\s+(?:THRU|THROUGH)\s+([A-Z0-9][A-Z0-9-]*))?/gi, p;
       while ((p = perfRe.exec(text)) !== null) {
         if (!current) continue;
-        current.performs.push(p[1].toUpperCase());
+        var first = p[1].toUpperCase();
+        if (PERFORM_INLINE[first]) continue;
+        /* "PERFORM 5 TIMES" is a loop count, not a paragraph. */
+        if (/^TIMES\b/i.test(text.slice(p.index + p[0].length).replace(/^\s+/, ''))) continue;
+        current.performs.push(first);
         if (p[2]) current.performs.push(p[2].toUpperCase());
       }
 
@@ -367,7 +398,16 @@
         var body = q[1], seen = {};
         SQL_TABLE_RES.forEach(function (pair) {
           var re = new RegExp(pair[0].source, 'gi'), op = pair[1], t;
-          while ((t = re.exec(body)) !== null) {
+          var scan = body;
+          if (op === 'select') {
+            // Blank out DELETE FROM before the generic FROM rule sees it,
+            // keeping the length stable so offsets stay meaningful.
+            scan = body.replace(new RegExp(SQL_DELETE_RE.source, 'gi'), function (m) {
+              return new Array(m.length + 1).join(' ');
+            });
+            if (!/\bSELECT\b/i.test(scan)) return;
+          }
+          while ((t = re.exec(scan)) !== null) {
             var table = t[1].toUpperCase().replace(/,$/, '');
             var k = table + '|' + op;
             if (table === 'DUAL' || seen[k]) continue;
@@ -453,8 +493,14 @@
           return;
         }
         if (op === 'DD' && currentStep) {
-          lastDD = makeDD(name, params, path, lineno);
-          currentStep.dds.push(lastDD);
+          /* A DD card with no name concatenates onto the previous one and
+             inherits its DD name. Without this the dataset was stored under an
+             empty name and vanished from the cross-reference, which keys on
+             DD name. */
+          var ddName = name || (lastDD ? lastDD.ddName : '');
+          var dd = makeDD(ddName, params, path, lineno);
+          currentStep.dds.push(dd);
+          if (name) lastDD = dd;
           return;
         }
       } else if (concat && currentStep && lastDD) {
