@@ -4,6 +4,9 @@
 # Enterprise-only. This removes a PR's previews when it closes, so stale builds
 # do not outlive the branch that produced them.
 #
+# It can also be run by hand for PRs that closed before this existed, or for
+# forked PRs, whose closing run receives no secrets.
+#
 # Requires two repository secrets:
 #   NETLIFY_AUTH_TOKEN  a personal access token with access to the site
 #   NETLIFY_SITE_ID     the site's API ID (Netlify → Project configuration →
@@ -14,27 +17,35 @@ name: Delete deploy preview
 on:
   pull_request:
     types: [closed]
+  workflow_dispatch:
+    inputs:
+      pr_numbers:
+        description: "PR numbers whose previews to delete, comma separated (e.g. 5,6,7)"
+        required: true
+        type: string
 
 # Nothing in the repository is read or written; the work is all Netlify-side.
 permissions: {}
 
 concurrency:
-  group: delete-preview-${{ github.event.pull_request.number }}
+  group: delete-preview-${{ github.event.pull_request.number || github.run_id }}
   cancel-in-progress: false
 
 jobs:
   delete-preview:
     runs-on: ubuntu-latest
-    # Forked PRs do not receive secrets, so the job would fail noisily for
-    # nothing. Previews for forks have to be cleaned up by hand.
-    if: github.event.pull_request.head.repo.full_name == github.repository
+    # Forked PRs do not receive secrets, so the automatic run would fail for
+    # nothing; clean those up with the manual trigger instead.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.pull_request.head.repo.full_name == github.repository
 
     steps:
-      - name: Delete this PR's Netlify deploy previews
+      - name: Delete Netlify deploy previews
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_NUMBERS: ${{ github.event_name == 'workflow_dispatch' && inputs.pr_numbers || github.event.pull_request.number }}
         run: |
           set -euo pipefail
 
@@ -43,14 +54,28 @@ jobs:
             exit 0
           fi
 
+          # Accept "5,6,7", "5, 6, 7" or a single number, and reject anything
+          # else rather than sending nonsense to the API.
+          # [:blank:] is space and tab only. [:space:] would strip the newlines
+          # that separate the entries, collapsing "5,6,7" into one number.
+          targets=$(printf '%s' "$PR_NUMBERS" | tr ',' '\n' | tr -d '[:blank:]' | sed '/^$/d')
+          if [ -z "$targets" ]; then
+            echo "::error::No PR numbers supplied."
+            exit 1
+          fi
+          while IFS= read -r n; do
+            case "$n" in
+              ''|*[!0-9]*) echo "::error::Not a PR number: '${n}'"; exit 1 ;;
+            esac
+          done <<< "$targets"
+
           API="https://api.netlify.com/api/v1"
           AUTH="Authorization: Bearer ${NETLIFY_AUTH_TOKEN}"
 
-          # A PR can have several preview deploys — one per push. Collect every
-          # deploy whose context is deploy-preview and whose review_id is this
-          # PR, walking pages until one comes back empty. The cap stops a
+          # One listing serves every requested PR: page through the site's
+          # deploys once and keep the deploy-preview entries. The cap stops a
           # surprise from turning into an unbounded loop.
-          ids=""
+          all=""
           page=1
           while [ "$page" -le 20 ]; do
             body=$(curl -sS --fail-with-body -H "$AUTH" \
@@ -62,34 +87,38 @@ jobs:
             count=$(printf '%s' "$body" | jq 'length')
             [ "$count" -eq 0 ] && break
 
-            match=$(printf '%s' "$body" | jq -r --argjson pr "$PR_NUMBER" \
-              '.[] | select(.context == "deploy-preview" and .review_id == $pr) | .id')
-            [ -n "$match" ] && ids="${ids}${match}"$'\n'
+            rows=$(printf '%s' "$body" | jq -r \
+              '.[] | select(.context == "deploy-preview" and .review_id != null) | "\(.review_id)\t\(.id)"')
+            [ -n "$rows" ] && all="${all}${rows}"$'\n'
 
             page=$((page + 1))
           done
 
-          ids=$(printf '%s' "$ids" | sed '/^$/d')
-          if [ -z "$ids" ]; then
-            echo "No deploy previews found for PR #${PR_NUMBER}; nothing to delete."
-            exit 0
-          fi
+          overall=0
+          deleted=0
+          while IFS= read -r pr; do
+            # A PR accumulates one preview per push, so match them all.
+            ids=$(printf '%s' "$all" | awk -F'\t' -v pr="$pr" '$1 == pr {print $2}')
+            if [ -z "$ids" ]; then
+              echo "PR #${pr}: no deploy previews found."
+              continue
+            fi
 
-          echo "Deleting $(printf '%s\n' "$ids" | wc -l) deploy(s) for PR #${PR_NUMBER}:"
-          failed=0
-          while IFS= read -r id; do
-            [ -z "$id" ] && continue
-            # 404 means it is already gone, which is the desired end state.
-            code=$(curl -sS -o /dev/null -w '%{http_code}' -X DELETE -H "$AUTH" \
-              "${API}/deploys/${id}") || code="000"
-            case "$code" in
-              204|404) echo "  ${id}  ${code}" ;;
-              *)       echo "  ${id}  ${code}  FAILED"; failed=1 ;;
-            esac
-          done <<< "$ids"
+            echo "PR #${pr}: deleting $(printf '%s\n' "$ids" | sed '/^$/d' | wc -l) deploy(s)"
+            while IFS= read -r id; do
+              [ -z "$id" ] && continue
+              # 404 means it is already gone, which is the desired end state.
+              code=$(curl -sS -o /dev/null -w '%{http_code}' -X DELETE -H "$AUTH" \
+                "${API}/deploys/${id}") || code="000"
+              case "$code" in
+                204|404) echo "  ${id}  ${code}"; deleted=$((deleted + 1)) ;;
+                *)       echo "  ${id}  ${code}  FAILED"; overall=1 ;;
+              esac
+            done <<< "$ids"
+          done <<< "$targets"
 
-          if [ "$failed" -ne 0 ]; then
+          if [ "$overall" -ne 0 ]; then
             echo "::error::One or more deploys could not be deleted."
             exit 1
           fi
-          echo "Done."
+          echo "Done. ${deleted} deploy(s) removed."
