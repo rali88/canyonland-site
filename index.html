@@ -76,9 +76,8 @@
       </a>
       <nav class="menu" id="menu" aria-label="Primary">
         <a href="#lifecycle">Lifecycle</a>
-        <a href="#work">Work</a>
-        <a href="#focus">Focus</a>
         <a href="portfolio.html">Portfolio</a>
+        <a href="#focus">Focus</a>
         <a href="#about">About</a>
         <a href="#contact" class="cta-link">Contact</a>
       </nav>
@@ -170,122 +169,19 @@
       <div class="wrap">
         <p class="eyebrow">Selected work</p>
         <h2>What this looks like in production.</h2>
-        <p class="standfirst">Each engagement below is tagged with the lifecycle stages it covers.</p>
+        <p class="standfirst">Four engagements, each tagged with the lifecycle stages it covers. Full write-ups —
+          challenge, approach, and outcome — are on the <a href="portfolio.html">portfolio</a>.</p>
 
-        <article class="case">
-          <p class="case-no">01</p>
-          <div>
-            <h3>Production payroll for a statewide workforce</h3>
-            <!-- Client attribution is deliberately non-identifying. See CLAUDE.md before changing it. -->
-            <p class="case-client">Prime systems integrator · large public-sector agency</p>
-            <div class="case-grid">
-              <div>
-                <p class="case-label">Challenge</p>
-                <p>Parallel payroll streams — regular, overtime, and separately funded grant payrolls — on a mainframe
-                  platform where a single missed cycle means people are not paid on time.</p>
-              </div>
-              <div>
-                <p class="case-label">Approach</p>
-                <p>Own setup and execution of every payroll type, maintain the reporting programs behind them, and carry
-                  the platform through fiscal-year transitions where dataset, calendar, and holiday-table changes must
-                  land together and in order.</p>
-              </div>
-              <div>
-                <p class="case-label">Outcome</p>
-                <p>Payroll lands on schedule through every cycle and fiscal-year boundary, with weekly written status
-                  reporting to agency and vendor stakeholders.</p>
-              </div>
-            </div>
-            <p class="case-foot"><span class="stages">Extract · Enable</span><span>z/OS · COBOL · JCL · Roscoe RPF ·
-                CA-Scheduler · Panvalet · Datacom/IDMS</span></p>
-          </div>
-        </article>
-
-        <article class="case">
-          <p class="case-no">02</p>
-          <div>
-            <h3>Root-cause recovery on a failed payroll cycle</h3>
-            <p class="case-client">Prime systems integrator · large public-sector agency</p>
-            <div class="case-grid">
-              <div>
-                <p class="case-label">Challenge</p>
-                <p>A production program abended mid-cycle while a concurrent tape-management failure left output
-                  datasets uncataloged — two faults presenting as one outage, against a deadline that does not move.</p>
-              </div>
-              <div>
-                <p class="case-label">Approach</p>
-                <p>Isolated the abend to its failing step, separated it from the underlying tape library and
-                  retention-key expiry issues, and rebuilt the affected datasets. Wrote up the recovery analysis and a
-                  resolution plan.</p>
-              </div>
-              <div>
-                <p class="case-label">Outcome</p>
-                <p>The cycle was recovered and completed on schedule. That failure class is now documented and handled
-                  by the operations team without escalation.</p>
-              </div>
-            </div>
-            <p class="case-foot"><span class="stages">Extract · Enable</span><span>z/OS · COBOL · JCL · CA-1 tape
-                management · virtual tape</span></p>
-          </div>
-        </article>
-
-        <article class="case">
-          <p class="case-no">03</p>
-          <div>
-            <h3>Statutory workforce reporting, moved onto SQL</h3>
-            <p class="case-client">Prime systems integrator · large public-sector agency</p>
-            <div class="case-grid">
-              <div>
-                <p class="case-label">Challenge</p>
-                <p>Compliance and workforce reports — headcount, affirmative-action, personnel breakdowns — were
-                  produced by legacy report-writer jobs few people could read and nobody could query ad hoc.</p>
-              </div>
-              <div>
-                <p class="case-label">Approach</p>
-                <p>Converted the report-writer logic to SQL with output parity line for line, then opened the underlying
-                  employee data to direct analysis and pivot-based summaries.</p>
-              </div>
-              <div>
-                <p class="case-label">Outcome</p>
-                <p>Reporting logic became reviewable, testable, and reusable. Questions that once required a new report
-                  request are now answered directly against the data.</p>
-              </div>
-            </div>
-            <p class="case-foot"><span class="stages">Extract · Land · Model · Build</span><span>EZTrieve · SQL ·
-                Datacom · Excel modeling</span></p>
-          </div>
-        </article>
-
-        <article class="case">
-          <p class="case-no">04</p>
-          <div>
-            <h3>Automated documentation for undocumented COBOL estates</h3>
-            <p class="case-client">Selected for a cloud provider's innovation program</p>
-            <div class="case-grid">
-              <div>
-                <p class="case-label">Challenge</p>
-                <p>Documentation for a decades-old estate either doesn't exist or describes a system from three decades
-                  ago, and the people who could fill the gap from memory are retiring.</p>
-              </div>
-              <div>
-                <p class="case-label">Approach</p>
-                <p>Building a generator that reads COBOL source, JCL, and data dictionary definitions and produces
-                  maintainer-grade documentation — what a program does, what it reads and writes, where it sits in the
-                  batch flow — grounded in the source rather than invented by the model.</p>
-              </div>
-              <div>
-                <p class="case-label">Outcome</p>
-                <p>In active development, working from a corpus of production COBOL programs, JCL skeletons, and Datacom
-                  dictionary definitions.</p>
-              </div>
-            </div>
-            <p class="case-foot"><span class="stages">Enable</span><span>Cloud infrastructure · LLM tooling ·
-                COBOL · JCL</span></p>
-          </div>
-        </article>
+        <div class="focus-list">
+          <div>Production payroll for a statewide workforce<br><span class="stages">Extract · Enable</span></div>
+          <div>Root-cause recovery on a failed payroll cycle<br><span class="stages">Extract · Enable</span></div>
+          <div>Statutory workforce reporting, moved onto SQL<br><span class="stages">Extract · Land · Model ·
+              Build</span></div>
+          <div>Automated documentation for undocumented COBOL estates<br><span class="stages">Enable</span></div>
+        </div>
 
         <p class="case-note">Client names and agency identities are withheld under contract. Engagements are described
-          at the level our agreements permit.</p>
+          at the level our agreements permit. <a href="portfolio.html">Read the full write-ups →</a></p>
       </div>
     </section>
 
@@ -394,7 +290,6 @@
       </div>
       <nav aria-label="Footer">
         <a href="#lifecycle">Lifecycle</a>
-        <a href="#work">Work</a>
         <a href="portfolio.html">Portfolio</a>
         <a href="#about">About</a>
         <a href="#contact">Contact</a>

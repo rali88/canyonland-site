@@ -4,7 +4,8 @@ Static marketing site. Plain HTML/CSS/JS, no build step, deployed on Netlify
 from `main`. **Pushing to `main` publishes immediately.**
 
 ```
-index.html  styles.css  script.js  success.html  404.html
+index.html  portfolio.html  styles.css  script.js
+success.html  404.html
 netlify.toml  robots.txt  sitemap.xml  assets/
 ```
 
@@ -32,6 +33,25 @@ someone else got the data there; this practice starts earlier. Keep that
 argument intact in any rewrite.
 
 Voice: "we" for the practice, with Rehan Ali named as principal consultant.
+
+## Where work is described
+
+Full case studies live on **`portfolio.html`**, not the homepage. The page
+carries two sections: client engagements (numbered, non-identifying attribution,
+lifecycle-stage tags) and in-house tooling, which is work we own outright and
+can describe in full.
+
+The homepage keeps a compact teaser at `#work` — the four engagement titles with
+their stage tags and a link through. That anchor is retained so older `/#work`
+links still land on relevant content, even though the nav item is gone. Nav is
+Lifecycle · Portfolio · Focus · About · Contact; there is deliberately no
+separate "Work" item, because two names for the same promise made the nav
+ambiguous.
+
+Do not describe an in-house tool as publicly available unless the repository
+actually is. An earlier draft of the portfolio page claimed the source could be
+read and run while the repo was private — the same failure as the unverifiable
+statistics below.
 
 ## Design system — technical editorial
 

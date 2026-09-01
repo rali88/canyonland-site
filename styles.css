@@ -155,6 +155,13 @@ img{max-width:100%}
 .case-foot .stages{color:var(--accent);text-transform:uppercase;letter-spacing:.12em}
 .case-note{margin-top:clamp(30px,4vw,44px);font-size:.9rem;color:var(--ink-3);max-width:var(--measure)}
 
+/* Stage tags in the homepage teaser (accent is reserved for .case-foot) */
+.focus-list .stages{
+  display:inline-block;margin-top:.4rem;
+  font-family:var(--mono);font-size:.68rem;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--ink-3);
+}
+
 /* ---------- Inline code ---------- */
 code{
   font-family:var(--mono);font-size:.88em;color:var(--ink);
