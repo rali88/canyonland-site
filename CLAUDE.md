@@ -179,6 +179,19 @@ dev ──commit──▶ push ──▶ PR into main ──▶ review ──▶
 
   Old previews therefore stay publicly reachable, serving whatever that PR last
   built. They are unlisted and `robots.txt` does not cover preview subdomains.
-  The only way to remove one is by hand: Netlify → Deploys → select the deploy →
-  Options → Delete deploy. Worth doing for any preview that built content since
-  corrected — a withdrawn claim, a fixed defect, anything confidential.
+  Worth removing for any preview that built content since corrected — a
+  withdrawn claim, a fixed defect, anything confidential.
+
+  Two ways to remove one. By hand: Netlify → Deploys → select the deploy →
+  Options → Delete deploy. Or through the API, which is the better answer once
+  this is more than an occasional tidy-up:
+
+  ```
+  curl -X DELETE -H "Authorization: Bearer $NETLIFY_TOKEN" \
+    https://api.netlify.com/api/v1/deploys/<deploy_id>
+  ```
+
+  That can run from a workflow on PR close, so previews are cleaned up as a
+  matter of course rather than remembered. It needs a Netlify personal access
+  token held as a repository secret — worth weighing, since a token with deploy
+  deletion rights is a meaningful thing to store.
