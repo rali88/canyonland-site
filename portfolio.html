@@ -77,13 +77,21 @@
       <div class="wrap">
         <p class="eyebrow">Client engagements</p>
         <h2>Selected work</h2>
+        <p class="standfirst narrow">Four engagements, tagged with the lifecycle stages
+          each covers. Select one to read the full write-up.</p>
 
-        <article class="case">
-          <p class="case-no">01</p>
-          <div>
+        <div class="cases">
+        <details class="case-panel">
+          <summary>
+            <p class="case-no">01</p>
             <h3>Production payroll for a statewide workforce</h3>
             <!-- Client attribution is deliberately non-identifying. See CLAUDE.md before changing it. -->
             <p class="case-client">Prime systems integrator · large public-sector agency</p>
+            <p class="case-summary">Parallel payroll streams on a mainframe platform where a single missed cycle means people are not paid on time.</p>
+            <p class="case-tags"><span class="stages">Extract · Enable</span></p>
+            <span class="case-cue" aria-hidden="true">Read the full write-up</span>
+          </summary>
+          <div class="case-body">
             <div class="case-grid">
               <div>
                 <p class="case-label">Challenge</p>
@@ -102,16 +110,21 @@
                   reporting to agency and vendor stakeholders.</p>
               </div>
             </div>
-            <p class="case-foot"><span class="stages">Extract · Enable</span><span>z/OS · COBOL · JCL · Roscoe RPF ·
+            <p class="case-foot"><span>z/OS · COBOL · JCL · Roscoe RPF ·
                 CA-Scheduler · Panvalet · Datacom/IDMS</span></p>
           </div>
-        </article>
+        </details>
 
-        <article class="case">
-          <p class="case-no">02</p>
-          <div>
+        <details class="case-panel">
+          <summary>
+            <p class="case-no">02</p>
             <h3>Root-cause recovery on a failed payroll cycle</h3>
             <p class="case-client">Prime systems integrator · large public-sector agency</p>
+            <p class="case-summary">Two faults presenting as one outage, against a deadline that does not move.</p>
+            <p class="case-tags"><span class="stages">Extract · Enable</span></p>
+            <span class="case-cue" aria-hidden="true">Read the full write-up</span>
+          </summary>
+          <div class="case-body">
             <div class="case-grid">
               <div>
                 <p class="case-label">Challenge</p>
@@ -130,16 +143,21 @@
                   by the operations team without escalation.</p>
               </div>
             </div>
-            <p class="case-foot"><span class="stages">Extract · Enable</span><span>z/OS · COBOL · JCL · CA-1 tape
+            <p class="case-foot"><span>z/OS · COBOL · JCL · CA-1 tape
                 management · virtual tape</span></p>
           </div>
-        </article>
+        </details>
 
-        <article class="case">
-          <p class="case-no">03</p>
-          <div>
+        <details class="case-panel">
+          <summary>
+            <p class="case-no">03</p>
             <h3>Statutory workforce reporting, moved onto SQL</h3>
             <p class="case-client">Prime systems integrator · large public-sector agency</p>
+            <p class="case-summary">Legacy report-writer jobs few people could read, and nobody could query ad hoc.</p>
+            <p class="case-tags"><span class="stages">Extract · Land · Model · Build</span></p>
+            <span class="case-cue" aria-hidden="true">Read the full write-up</span>
+          </summary>
+          <div class="case-body">
             <div class="case-grid">
               <div>
                 <p class="case-label">Challenge</p>
@@ -157,16 +175,21 @@
                   request are now answered directly against the data.</p>
               </div>
             </div>
-            <p class="case-foot"><span class="stages">Extract · Land · Model · Build</span><span>EZTrieve · SQL ·
+            <p class="case-foot"><span>EZTrieve · SQL ·
                 Datacom · Excel modeling</span></p>
           </div>
-        </article>
+        </details>
 
-        <article class="case">
-          <p class="case-no">04</p>
-          <div>
+        <details class="case-panel">
+          <summary>
+            <p class="case-no">04</p>
             <h3>Automated documentation for undocumented COBOL estates</h3>
             <p class="case-client">Selected for a cloud provider's innovation program</p>
+            <p class="case-summary">Documentation that either doesn't exist or describes a system from three decades ago.</p>
+            <p class="case-tags"><span class="stages">Enable</span></p>
+            <span class="case-cue" aria-hidden="true">Read the full write-up</span>
+          </summary>
+          <div class="case-body">
             <div class="case-grid">
               <div>
                 <p class="case-label">Challenge</p>
@@ -185,10 +208,11 @@
                   dictionary definitions.</p>
               </div>
             </div>
-            <p class="case-foot"><span class="stages">Enable</span><span>Cloud infrastructure · LLM tooling ·
+            <p class="case-foot"><span>Cloud infrastructure · LLM tooling ·
                 COBOL · JCL</span></p>
           </div>
-        </article>
+        </details>
+        </div>
 
         <p class="case-note">Client names and agency identities are withheld under contract. Engagements are described
           at the level our agreements permit.</p>
