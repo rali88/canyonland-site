@@ -1,13 +1,25 @@
-# netlify.toml
-# Configuration for Netlify deploys
+# netlify.toml — Canyonland Technologies
 
 [build]
-  publish = "."       # Serve files from the root (index.html, etc.)
-  command = ""        # No build step needed for plain HTML/CSS/JS
+  publish = "."       # Plain HTML/CSS/JS, served from the repo root
+  command = ""        # No build step
 
-# Redirect www to root
+# Canonical host: send the apex domain to www (matches <link rel="canonical">).
+# Netlify handles the HTTP→HTTPS upgrade itself, so only the https origin is listed.
 [[redirects]]
-  from = "http://canyonlandtech.com/*"
+  from = "https://canyonlandtech.com/*"
   to = "https://www.canyonlandtech.com/:splat"
   status = 301
   force = true
+
+# Long-lived caching for fingerprint-stable static assets
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"

@@ -4,231 +4,409 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Canyonland Technologies Inc. — BI & Analytics Consulting</title>
+  <title>Canyonland Technologies — Full-Lifecycle Business Intelligence</title>
   <meta name="description"
-    content="Canyonland Technologies Inc. — end-to-end Business Intelligence and Data Analytics consulting: strategy, data engineering, dashboards, AI enablement." />
+    content="Business intelligence across the full lifecycle: extracting from mainframe and legacy systems, landing it in modern databases, and building the dashboards, applications, and analytical tools teams work in every day." />
+  <link rel="canonical" href="https://www.canyonlandtech.com/" />
+  <meta name="theme-color" content="#14181d" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Canyonland Technologies Inc." />
+  <meta property="og:url" content="https://www.canyonlandtech.com/" />
+  <meta property="og:title" content="Canyonland Technologies — Full-Lifecycle Business Intelligence" />
+  <meta property="og:description"
+    content="From mainframe and legacy systems to modern databases, dashboards, applications, and analytical tools. The whole BI lifecycle, one practice." />
+  <meta property="og:image" content="https://www.canyonlandtech.com/assets/og-image.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="Canyonland Technologies Inc." />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Canyonland Technologies — Full-Lifecycle Business Intelligence" />
+  <meta name="twitter:description"
+    content="From mainframe and legacy systems to modern databases, dashboards, applications, and analytical tools." />
+  <meta name="twitter:image" content="https://www.canyonlandtech.com/assets/og-image.png" />
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Playfair+Display:wght@600;700;800&display=swap"
+    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap"
     rel="stylesheet">
 
-  <!-- Updated favicon set -->
   <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png">
   <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
   <link rel="icon" type="image/png" sizes="48x48" href="assets/favicon-48.png">
+  <link rel="icon" type="image/png" sizes="96x96" href="assets/favicon-96.png">
   <link rel="icon" type="image/png" sizes="192x192" href="assets/favicon-192.png">
   <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
 
   <link rel="stylesheet" href="styles.css" />
 
-  <style>
-    /* Heading serif to echo wordmark */
-    h1,
-    h2,
-    h3,
-    h4 {
-      font-family: "Playfair Display", serif;
-      letter-spacing: .2px;
-    }
-
-    body {
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-    }
-  </style>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "ProfessionalService",
+    "name": "Canyonland Technologies Inc.",
+    "url": "https://www.canyonlandtech.com/",
+    "logo": "https://www.canyonlandtech.com/assets/logo-400.png",
+    "image": "https://www.canyonlandtech.com/assets/og-image.png",
+    "description": "Full-lifecycle business intelligence: extraction from mainframe and legacy systems, migration to modern databases, semantic modeling, and delivery of dashboards, applications, and analytical tools.",
+    "email": "info@canyonlandtech.com",
+    "telephone": "+1-708-765-6254",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "205 North Michigan Avenue, Suite 810",
+      "addressLocality": "Chicago",
+      "addressRegion": "IL",
+      "postalCode": "60601",
+      "addressCountry": "US"
+    },
+    "areaServed": "US",
+    "knowsAbout": ["Business intelligence", "Data engineering", "Legacy modernization", "z/OS", "COBOL", "SQL", "Dashboards", "Data warehousing"]
+  }
+  </script>
 </head>
 
-<form name="contact" netlify hidden>
-  <input type="text" name="name" />
-  <input type="email" name="email" />
-  <textarea name="message"></textarea>
-</form>
-
 <body>
-  <header class="site-header">
-    <div class="container">
-      <a class="logo" href="#top" aria-label="Canyonland Technologies Inc.">
-        <img src="assets/logo.png" alt="Canyonland Technologies Inc.">
+  <a class="skip" href="#main">Skip to content</a>
+
+  <header class="masthead">
+    <div class="wrap">
+      <a class="mark" href="#top" aria-label="Canyonland Technologies Inc. — home">
+        <img src="assets/logo-400.png" width="400" height="180" alt="Canyonland Technologies Inc.">
       </a>
-      <nav class="nav">
-        <a href="#services">Services</a>
-        <a href="#industries">Industries</a>
-        <a href="#process">Process</a>
+      <nav class="menu" id="menu" aria-label="Primary">
+        <a href="#lifecycle">Lifecycle</a>
+        <a href="#work">Work</a>
+        <a href="#focus">Focus</a>
         <a href="#about">About</a>
-        <a href="#contact" class="btn btn-small">Contact</a>
+        <a href="#contact" class="cta-link">Contact</a>
       </nav>
-      <button class="nav-toggle" aria-label="Open menu" aria-expanded="false">☰</button>
+      <button class="menu-btn" aria-label="Open menu" aria-expanded="false" aria-controls="menu">☰</button>
     </div>
   </header>
 
-  <main id="top">
-    <section class="hero">
-      <div class="container hero-grid">
+  <main id="main">
+    <section class="hero" id="top">
+      <div class="wrap">
+        <h1>Business intelligence that starts where the data <em>actually lives</em>.</h1>
+        <p class="standfirst narrow">Most BI work begins at the warehouse and assumes someone else got the data there.
+          We cover the whole lifecycle — pulling it out of mainframe and legacy systems, landing it in modern databases,
+          then building the dashboards, applications, and analytical tools your teams work in every day.</p>
+        <div class="hero-actions">
+          <a href="#contact" class="btn">Start a conversation</a>
+          <a href="#lifecycle" class="btn btn--quiet">See how we work</a>
+        </div>
+        <div class="hero-meta">
+          <span>Mainframe → Modern BI</span>
+          <span>Public sector &amp; prime contractors</span>
+          <span>Chicago, IL · Remote-first</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="band" id="lifecycle">
+      <div class="wrap">
+        <p class="eyebrow">The lifecycle</p>
+        <h2>Five stages, one practice.</h2>
+        <p class="standfirst">Most organizations hire separately for each of these, then spend the project managing the
+          seams between vendors. We carry the data the whole way.</p>
+
+        <div class="spine">
+          <div class="stage">
+            <p class="stage-no">01</p>
+            <h3 class="stage-name">Extract</h3>
+            <div class="stage-body">
+              <p>Get the data out of the system of record — mainframe datasets, COBOL and report-writer logic, legacy
+                databases whose rules exist only in code. This is the stage most BI firms quietly skip.</p>
+              <span class="stage-tools">z/OS · COBOL · JCL · Datacom/IDMS · EZTrieve</span>
+            </div>
+          </div>
+
+          <div class="stage">
+            <p class="stage-no">02</p>
+            <h3 class="stage-name">Land</h3>
+            <div class="stage-body">
+              <p>Move it into modern databases with structure, history, and integrity you can rely on — reconciled
+                against the source so the numbers match line for line, not approximately.</p>
+              <span class="stage-tools">SQL Server · PostgreSQL · Python · Scheduled loads</span>
+            </div>
+          </div>
+
+          <div class="stage">
+            <p class="stage-no">03</p>
+            <h3 class="stage-name">Model</h3>
+            <div class="stage-body">
+              <p>Define each metric once. Business rules, semantic models, and tested logic, so two departments asking
+                the same question get the same answer.</p>
+              <span class="stage-tools">Dimensional models · Metric definitions · Data quality tests</span>
+            </div>
+          </div>
+
+          <div class="stage">
+            <p class="stage-no">04</p>
+            <h3 class="stage-name">Build</h3>
+            <div class="stage-body">
+              <p>Dashboards for the people who read numbers, applications for the people who enter and act on them, and
+                analytical tools for the people who need to ask something nobody anticipated.</p>
+              <span class="stage-tools">Power BI · Excel models · Internal applications · Ad-hoc analysis</span>
+            </div>
+          </div>
+
+          <div class="stage">
+            <p class="stage-no">05</p>
+            <h3 class="stage-name">Enable</h3>
+            <div class="stage-body">
+              <p>Documentation, runbooks, and training — including AI-assisted documentation of legacy code, so the
+                knowledge outlives both the contract and the people who remember how it works.</p>
+              <span class="stage-tools">Runbooks · Knowledge transfer · Automated COBOL documentation</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="band band--tint" id="work">
+      <div class="wrap">
+        <p class="eyebrow">Selected work</p>
+        <h2>What this looks like in production.</h2>
+        <p class="standfirst">Each engagement below is tagged with the lifecycle stages it covers.</p>
+
+        <article class="case">
+          <p class="case-no">01</p>
+          <div>
+            <h3>Production payroll for a statewide workforce</h3>
+            <!-- Client attribution is deliberately non-identifying. See CLAUDE.md before changing it. -->
+            <p class="case-client">Prime systems integrator · large public-sector agency</p>
+            <div class="case-grid">
+              <div>
+                <p class="case-label">Challenge</p>
+                <p>Parallel payroll streams — regular, overtime, and separately funded grant payrolls — on a mainframe
+                  platform where a single missed cycle means people are not paid on time.</p>
+              </div>
+              <div>
+                <p class="case-label">Approach</p>
+                <p>Own setup and execution of every payroll type, maintain the reporting programs behind them, and carry
+                  the platform through fiscal-year transitions where dataset, calendar, and holiday-table changes must
+                  land together and in order.</p>
+              </div>
+              <div>
+                <p class="case-label">Outcome</p>
+                <p>Payroll lands on schedule through every cycle and fiscal-year boundary, with weekly written status
+                  reporting to agency and vendor stakeholders.</p>
+              </div>
+            </div>
+            <p class="case-foot"><span class="stages">Extract · Enable</span><span>z/OS · COBOL · JCL · Roscoe RPF ·
+                CA-Scheduler · Panvalet · Datacom/IDMS</span></p>
+          </div>
+        </article>
+
+        <article class="case">
+          <p class="case-no">02</p>
+          <div>
+            <h3>Root-cause recovery on a failed payroll cycle</h3>
+            <p class="case-client">Prime systems integrator · large public-sector agency</p>
+            <div class="case-grid">
+              <div>
+                <p class="case-label">Challenge</p>
+                <p>A production program abended mid-cycle while a concurrent tape-management failure left output
+                  datasets uncataloged — two faults presenting as one outage, against a deadline that does not move.</p>
+              </div>
+              <div>
+                <p class="case-label">Approach</p>
+                <p>Isolated the abend to its failing step, separated it from the underlying tape library and
+                  retention-key expiry issues, and rebuilt the affected datasets. Wrote up the recovery analysis and a
+                  resolution plan.</p>
+              </div>
+              <div>
+                <p class="case-label">Outcome</p>
+                <p>The cycle was recovered and completed on schedule. That failure class is now documented and handled
+                  by the operations team without escalation.</p>
+              </div>
+            </div>
+            <p class="case-foot"><span class="stages">Extract · Enable</span><span>z/OS · COBOL · JCL · CA-1 tape
+                management · virtual tape</span></p>
+          </div>
+        </article>
+
+        <article class="case">
+          <p class="case-no">03</p>
+          <div>
+            <h3>Statutory workforce reporting, moved onto SQL</h3>
+            <p class="case-client">Prime systems integrator · large public-sector agency</p>
+            <div class="case-grid">
+              <div>
+                <p class="case-label">Challenge</p>
+                <p>Compliance and workforce reports — headcount, affirmative-action, personnel breakdowns — were
+                  produced by legacy report-writer jobs few people could read and nobody could query ad hoc.</p>
+              </div>
+              <div>
+                <p class="case-label">Approach</p>
+                <p>Converted the report-writer logic to SQL with output parity line for line, then opened the underlying
+                  employee data to direct analysis and pivot-based summaries.</p>
+              </div>
+              <div>
+                <p class="case-label">Outcome</p>
+                <p>Reporting logic became reviewable, testable, and reusable. Questions that once required a new report
+                  request are now answered directly against the data.</p>
+              </div>
+            </div>
+            <p class="case-foot"><span class="stages">Extract · Land · Model · Build</span><span>EZTrieve · SQL ·
+                Datacom · Excel modeling</span></p>
+          </div>
+        </article>
+
+        <article class="case">
+          <p class="case-no">04</p>
+          <div>
+            <h3>Automated documentation for undocumented COBOL estates</h3>
+            <p class="case-client">Selected for a cloud provider's innovation program</p>
+            <div class="case-grid">
+              <div>
+                <p class="case-label">Challenge</p>
+                <p>Documentation for a decades-old estate either doesn't exist or describes a system from three decades
+                  ago, and the people who could fill the gap from memory are retiring.</p>
+              </div>
+              <div>
+                <p class="case-label">Approach</p>
+                <p>Building a generator that reads COBOL source, JCL, and data dictionary definitions and produces
+                  maintainer-grade documentation — what a program does, what it reads and writes, where it sits in the
+                  batch flow — grounded in the source rather than invented by the model.</p>
+              </div>
+              <div>
+                <p class="case-label">Outcome</p>
+                <p>In active development, working from a corpus of production COBOL programs, JCL skeletons, and Datacom
+                  dictionary definitions.</p>
+              </div>
+            </div>
+            <p class="case-foot"><span class="stages">Enable</span><span>Cloud infrastructure · LLM tooling ·
+                COBOL · JCL</span></p>
+          </div>
+        </article>
+
+        <p class="case-note">Client names and agency identities are withheld under contract. Engagements are described
+          at the level our agreements permit.</p>
+      </div>
+    </section>
+
+    <section class="band" id="focus">
+      <div class="wrap">
+        <p class="eyebrow">Focus</p>
+        <h2>Where we tend to be useful.</h2>
+        <p class="standfirst">A narrow practice by choice. These are the situations where covering the whole lifecycle
+          is worth more than hiring specialists for each stage.</p>
+        <div class="focus-list">
+          <div>State &amp; local government</div>
+          <div>Prime contractors &amp; systems integrators</div>
+          <div>Payroll, HR &amp; finance operations</div>
+          <div>Organizations carrying a mainframe estate</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="band" id="about">
+      <div class="wrap split">
         <div>
-          <h1>Turn your data into confident decisions.</h1>
-          <p class="lead">We deliver end-to-end <strong>BI and Analytics</strong>—from data engineering and governance
-            to executive-ready dashboards and AI-assisted insights.</p>
-          <div class="cta">
-            <a href="#contact" class="btn">Get a free consult</a>
-            <a href="#services" class="btn btn-ghost">Explore services</a>
-          </div>
-          <ul class="badges">
-            <li>Chicago, IL • Remote-first</li>
-            <li>Enterprise & SMB</li>
-            <li>Secure by design</li>
-          </ul>
-        </div>
-        <div class="hero-card" role="img" aria-label="Abstract data visualization card">
-          <div class="kpi">
-            <span class="kpi-label">Data Latency</span>
-            <span class="kpi-value">↓ 80%</span>
-          </div>
-          <div class="kpi">
-            <span class="kpi-label">Report Adoption</span>
-            <span class="kpi-value">↑ 3×</span>
-          </div>
-          <div class="kpi">
-            <span class="kpi-label">Cost to Insight</span>
-            <span class="kpi-value">↓ 45%</span>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section id="services" class="section">
-      <div class="container">
-        <h2>What we do</h2>
-        <div class="cards three">
-          <article class="card">
-            <h3>Data Engineering</h3>
-            <p>Modern ETL/ELT, lake/warehouse design, orchestration, and quality—built for scale and governed for trust.
-            </p>
-            <ul>
-              <li>SQL Server, Databricks, Snowflake</li>
-              <li>Python pipelines, dbt</li>
-              <li>Azure DevOps CI/CD</li>
-            </ul>
-          </article>
-          <article class="card">
-            <h3>BI & Dashboards</h3>
-            <p>Executive-grade visuals and self-service analytics with solid semantic models and versioned metrics.</p>
-            <ul>
-              <li>Power BI, Looker, Tableau</li>
-              <li>Metrics layers & governance</li>
-              <li>KPI definitions & OKRs</li>
-            </ul>
-          </article>
-          <article class="card">
-            <h3>AI-Assisted Analytics</h3>
-            <p>LLM-powered insights, retrieval-augmented answers, and copilots—responsibly and securely integrated.</p>
-            <ul>
-              <li>LangChain, vector search</li>
-              <li>Prompt & eval frameworks</li>
-              <li>Security & data privacy</li>
-            </ul>
-          </article>
-        </div>
-      </div>
-    </section>
-
-    <section id="industries" class="section alt">
-      <div class="container">
-        <h2>Industries</h2>
-        <div class="chips">
-          <span class="chip">Public Sector & Payroll</span>
-          <span class="chip">Financial Services</span>
-          <span class="chip">Healthcare & Life Sciences</span>
-          <span class="chip">Education</span>
-          <span class="chip">SMB & Startups</span>
-        </div>
-      </div>
-    </section>
-
-    <section id="process" class="section">
-      <div class="container">
-        <h2>How we deliver</h2>
-        <ol class="timeline">
-          <li><strong>Discover:</strong> clarify outcomes, stakeholders, data sources.</li>
-          <li><strong>Design:</strong> architect models, pipelines, and governance.</li>
-          <li><strong>Build:</strong> implement & test; CI/CD to your cloud.</li>
-          <li><strong>Measure:</strong> define KPIs, instrument adoption.</li>
-          <li><strong>Enable:</strong> train teams; hand off with playbooks.</li>
-        </ol>
-      </div>
-    </section>
-
-    <section id="about" class="section alt">
-      <div class="container two-col">
-        <div>
+          <p class="eyebrow">The practice</p>
           <h2>About Canyonland</h2>
-          <p>Canyonland Technologies Inc. is a Chicago-based BI & Analytics consultancy. We combine strong data
-            engineering, practical AI, and crisp visualization to help teams move faster with fewer risks.</p>
-          <ul class="contact-list">
-            <li><strong>Address:</strong> 205 North Michigan Avenue, Suite 810, Chicago, IL 60601</li>
-            <li><strong>Phone:</strong> <a href="tel:+17087656254">+1 (708) 765-6254</a></li>
-            <li><strong>Email:</strong> <a href="mailto:info@canyonlandtech.com">info@canyonlandtech.com</a></li>
+          <p>Canyonland Technologies Inc. is an independent business-intelligence practice. We work across the entire
+            lifecycle — from systems of record that have been in production for decades, through modern databases, to
+            the dashboards and applications people use to make decisions.</p>
+          <p>The distinctive part is where we can start. Plenty of firms will build you a dashboard once the data is
+            clean and waiting in a warehouse. Far fewer can go into a mainframe, read the COBOL that defines what a
+            number actually means, and bring it out intact. Most engagements come through prime contractors serving
+            public-sector clients.</p>
+
+          <div class="principal">
+            <h3>Rehan Ali — Principal Consultant</h3>
+            <p>Rehan runs production payroll on z/OS for a statewide public-sector workforce: cycle execution across
+              regular, overtime, and grant-funded payrolls, fiscal-year transitions, abend recovery, and the reporting
+              programs behind them. He converts legacy report-writer logic to SQL, builds the analysis layer on top,
+              leads knowledge transfer to client staff, and was selected for a cloud provider's innovation program to build
+              AI-assisted documentation tooling for COBOL estates.</p>
+          </div>
+
+          <ul class="details">
+            <li><span>Address</span>205 North Michigan Avenue, Suite 810, Chicago, IL 60601</li>
+            <li><span>Phone</span><a href="tel:+17087656254">+1 (708) 765-6254</a></li>
+            <li><span>Email</span><a href="mailto:info@canyonlandtech.com">info@canyonlandtech.com</a></li>
           </ul>
         </div>
-        <aside class="aside">
+
+        <aside class="rail">
           <h3>Core stack</h3>
           <ul>
-            <li>Azure DevOps • SQL Server • Python</li>
-            <li>Power BI • dbt • Databricks</li>
-            <li>Git • CI/CD • IaC (Bicep/Terraform)</li>
+            <li>z/OS · COBOL · JCL · Roscoe RPF</li>
+            <li>CA-Scheduler · CA-1 · Panvalet</li>
+            <li>Datacom/IDMS · EZTrieve</li>
+            <li>SQL Server · PostgreSQL · Python</li>
+            <li>Power BI · Excel modeling</li>
+            <li>Cloud infrastructure · Git</li>
           </ul>
+          <p class="footnote">Capability statement available on request.</p>
         </aside>
       </div>
     </section>
 
-    <section id="contact" class="section">
-      <div class="container">
-        <h2>Contact us</h2>
-        <p>Tell us about your project. We usually reply within one business day.</p>
+    <section class="band band--tint" id="contact">
+      <div class="wrap">
+        <p class="eyebrow">Get in touch</p>
+        <h2>Tell us what's stuck.</h2>
+        <p class="standfirst">Whether it's a mainframe nobody wants to open or a dashboard nobody trusts, describe it
+          and we'll tell you honestly whether we're the right people. We usually reply within one business day.</p>
 
-        <!-- Netlify-compatible static form -->
-        <form name="contact" method="POST" data-netlify="true" netlify-honeypot="bot-field" action="success.html"
-          class="contact-form">
+        <form name="contact" method="POST" data-netlify="true" netlify-honeypot="bot-field" action="/success.html"
+          class="form">
           <input type="hidden" name="form-name" value="contact" />
-          <!-- Honeypot field (hidden from real users) -->
-          <p style="position:absolute; left:-9999px;">
-            <label>Don’t fill this out: <input name="bot-field" /></label>
-          </p>
+          <p class="honey"><label>Don't fill this out: <input name="bot-field" tabindex="-1"
+                autocomplete="off" /></label></p>
 
-          <div class="form-row">
+          <div class="field">
             <label for="name">Name</label>
-            <input id="name" name="name" required />
+            <input id="name" name="name" autocomplete="name" required />
           </div>
-
-          <div class="form-row">
+          <div class="field">
+            <label for="org">Organization <span class="opt">(optional)</span></label>
+            <input id="org" name="organization" autocomplete="organization" />
+          </div>
+          <div class="field">
             <label for="email">Email</label>
-            <input id="email" type="email" name="email" required />
+            <input id="email" type="email" name="email" autocomplete="email" required />
           </div>
-
-          <div class="form-row">
-            <label for="message">Message</label>
+          <div class="field">
+            <label for="message">What are you dealing with?</label>
             <textarea id="message" name="message" rows="5" required></textarea>
           </div>
 
           <button type="submit" class="btn">Send message</button>
         </form>
-        <p class="tiny">Prefer email? <a href="mailto:info@canyonlandtech.com">info@canyonlandtech.com</a></p>
+        <p class="after-form">Prefer email? <a href="mailto:info@canyonlandtech.com">info@canyonlandtech.com</a> ·
+          Enquiries are treated as confidential.</p>
       </div>
     </section>
   </main>
 
-  <footer class="site-footer">
-    <div class="container foot-grid">
-      <div class="foot-brand">
-        <img src="assets/logo.png" alt="Canyonland Technologies Inc.">
-        <p>© <span id="year"></span> Canyonland Technologies Inc. All rights reserved.</p>
+  <footer class="foot">
+    <div class="wrap">
+      <div>
+        <img src="assets/logo-320.png" width="320" height="144" alt="Canyonland Technologies Inc.">
+        <p>© <span id="year"></span> Canyonland Technologies Inc.</p>
       </div>
-      <nav class="foot-nav">
-        <a href="#services">Services</a>
+      <nav aria-label="Footer">
+        <a href="#lifecycle">Lifecycle</a>
+        <a href="#work">Work</a>
         <a href="#about">About</a>
         <a href="#contact">Contact</a>
       </nav>
     </div>
   </footer>
+
+  <!-- Netlify build-time form detection -->
+  <form name="contact" data-netlify="true" hidden>
+    <input type="text" name="name" />
+    <input type="text" name="organization" />
+    <input type="email" name="email" />
+    <textarea name="message"></textarea>
+  </form>
 
   <script src="script.js"></script>
 </body>

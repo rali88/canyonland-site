@@ -1,0 +1,93 @@
+# Canyonland Technologies — website
+
+Static marketing site. Plain HTML/CSS/JS, no build step, deployed on Netlify
+from `main`. **Pushing to `main` publishes immediately.**
+
+```
+index.html  styles.css  script.js  success.html  404.html
+netlify.toml  robots.txt  sitemap.xml  assets/
+```
+
+Preview locally with `python3 -m http.server` — there is nothing to compile.
+
+## Positioning
+
+The practice sells the **full BI lifecycle**, not legacy modernization alone.
+The five stages are the spine of the page and the organizing idea of the whole
+site:
+
+| # | Stage   | What it covers |
+|---|---------|----------------|
+| 01 | Extract | Getting data out of the system of record — mainframe datasets, COBOL and report-writer logic, legacy databases |
+| 02 | Land    | Into modern databases, reconciled against the source |
+| 03 | Model   | Metrics defined once: semantic models, business rules, tested logic |
+| 04 | Build   | Dashboards, applications, analytical tools |
+| 05 | Enable  | Runbooks, training, AI-assisted documentation of legacy code |
+
+Mainframe/legacy work is the **entry point** to that lifecycle — the
+differentiator, not the ceiling. Most BI firms start at the warehouse and assume
+someone else got the data there; this practice starts earlier. Keep that
+argument intact in any rewrite.
+
+Voice: "we" for the practice, with Rehan Ali named as principal consultant.
+
+## Design system — technical editorial
+
+Type is **IBM Plex Sans + IBM Plex Mono**, loaded from Google Fonts. This is not
+arbitrary: IBM designed Plex, and IBM built the platform the practice is founded
+on. Mono is for labels, eyebrows, stage numbers and environment lines only.
+
+Tokens live at the top of `styles.css`:
+
+```
+--ink #14181d   --ink-2 #3d4650   --ink-3 #616b78
+--ground #fafafa   --ground-2 #f2f3f4   --paper #ffffff
+--rule #dcdfe3   --rule-strong #c3c8ce
+--accent #b8400c   --accent-tint #fbece4
+```
+
+Rules that hold the look together — breaking any of these breaks it:
+
+- **Orange is rationed.** Roughly three appearances per screen: stage numbers,
+  links, one rule. It comes from the logo mark; it is not a background colour.
+- **No boxed cards, no drop shadows, no rounded corners.** Structure is
+  hairlines (`--rule`) and whitespace. `border-radius` is `0` everywhere,
+  including inputs.
+- **Light display weights at large sizes.** `h1` is weight 300. Headings carry
+  negative letter-spacing and `text-wrap: balance`.
+- Sections are separated by hairline borders, not alternating colour blocks.
+  `.band--tint` exists for occasional emphasis; use it sparingly.
+- Single committed theme (light). Every colour is set explicitly from a token.
+
+All body text measures **≥ 4.5:1** against its ground. Re-measure before
+shipping any colour change — a previous version of this site shipped muted text
+at 1.84:1 for months.
+
+## Content constraints
+
+**Client identities are confidential.** Engagements are attributed as
+"Prime systems integrator · large public-sector agency". Do not name the end
+client, the agency, or the prime vendor anywhere in this repo — **including HTML
+comments**, which are readable in page source on the deployed site, and in
+commit messages. This repository is public.
+
+Do not invent outcome metrics. An earlier version of this site carried three
+performance statistics that traced back to nothing; they were removed. Every
+claim on the page should be one that survives a client asking "based on what?"
+Where a number would help but isn't verified, write the qualitative version.
+
+## Conventions
+
+- Semantic HTML; every interactive element keyboard-reachable with a visible
+  focus ring (`*:focus-visible`, 2px accent outline).
+- The Netlify form needs both the real `<form>` and the hidden detection form at
+  the end of `<body>`. Field name changes must be made in both.
+- Assets: reference `logo-400.png` / `logo-320.png`, never the 3000px
+  `logo.png` source. Page payload is ~82KB; keep it there.
+- Anchor targets rely on `scroll-margin-top` to clear the sticky header.
+
+## Before shipping
+
+Render the page in a real browser and check: no console errors, no 4xx on any
+asset, one `h1`, contrast measured rather than eyeballed, and the mobile
+breakpoint at 390px. Screenshots at 1280px and 390px catch most regressions.
