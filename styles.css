@@ -180,6 +180,62 @@ code{
   padding:.08em .34em;border-radius:0;
 }
 
+/* ---------- Engagement panels ---------- */
+/* Summaries sit side by side; selecting one opens the full write-up in place.
+   Built from hairlines and whitespace, not boxes: no border-radius, no shadow,
+   no fill. Opening is pure CSS via <details>, so it works without JavaScript
+   and the text stays in the page for search engines. */
+.cases{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(232px,1fr));
+  gap:0;border-top:1px solid var(--rule-strong);
+}
+.case-panel{
+  border-bottom:1px solid var(--rule);
+  padding:1.3rem 1.6rem 1.4rem 0;
+}
+/* The open panel takes the whole row so the three-column write-up has room,
+   instead of being crushed into one grid track. */
+.case-panel[open]{grid-column:1/-1;padding-right:0}
+
+.case-panel summary{
+  list-style:none;cursor:pointer;display:block;
+}
+.case-panel summary::-webkit-details-marker{display:none}
+.case-panel summary:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.case-panel summary h3{
+  font-size:1.02rem;font-weight:500;line-height:1.3;margin:.5rem 0 .35rem;
+  letter-spacing:-.01em;
+}
+.case-panel .case-client{margin:0 0 .6rem}
+.case-summary{font-size:.92rem;color:var(--ink-2);margin:0 0 .8rem}
+.case-tags{margin:0}
+.case-tags .stages{
+  font-family:var(--mono);font-size:.66rem;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--ink-3);
+}
+/* Four panels side by side put four cues on screen at once. In accent that
+   would blow the roughly-three-per-screen ration on its own, before counting
+   the case numbers, so the cue rests in muted mono and takes the accent only
+   on hover or focus — where it is one appearance, not four. */
+.case-cue{
+  display:inline-block;margin-top:.9rem;
+  font-family:var(--mono);font-size:.68rem;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--ink-3);
+}
+.case-panel summary:hover .case-cue,
+.case-panel summary:focus-visible .case-cue{color:var(--accent)}
+.case-panel[open] .case-cue{display:none}
+.case-panel[open] summary{margin-bottom:1.4rem}
+.case-panel[open] summary h3{font-size:1.18rem}
+.case-body{border-top:1px solid var(--rule);padding-top:1.4rem}
+/* Collapsing is normally the user-agent's job, but stating it explicitly means
+   the panel does not depend on a UA stylesheet being present or intact. */
+.case-panel:not([open]) .case-body{display:none}
+
+@media (prefers-reduced-motion:no-preference){
+  .case-cue{transition:color .15s ease}
+}
+
 /* ---------- Two-column prose ---------- */
 .split{display:grid;grid-template-columns:1.5fr 1fr;gap:clamp(32px,6vw,84px);align-items:start}
 .split p + p{margin-top:1.1rem}
