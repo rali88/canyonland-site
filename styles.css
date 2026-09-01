@@ -108,6 +108,11 @@ img{max-width:100%}
 .hero h1 em{font-style:normal;color:var(--accent)}
 .hero .standfirst{font-size:clamp(1.02rem,1.5vw,1.18rem);color:var(--ink-2);margin-bottom:2.4rem}
 .hero-actions{display:flex;gap:12px;flex-wrap:wrap}
+/* In the hero, separation comes from .standfirst's bottom margin. Following a
+   bordered block instead, the buttons sat flush against its rule, so that
+   placement carries its own spacing. Scoped to the adjacency so existing uses
+   keep the spacing they already have. */
+.focus-list + .hero-actions{margin-top:clamp(28px,3.5vw,44px)}
 
 .hero-meta{
   margin-top:clamp(48px,7vw,86px);padding-top:1.5rem;border-top:1px solid var(--rule);
