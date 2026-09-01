@@ -48,7 +48,7 @@ a:hover{color:var(--brand-600); text-decoration:underline}
 .section{padding:76px 0}
 .section.alt{background:var(--bg-alt)}
 section[id]{scroll-margin-top:84px}
-.section-lede{color:var(--ink-700);max-width:70ch;margin:-.25rem 0 2rem;font-size:1.02rem}
+.section-lede{color:var(--ink-700);max-width:70ch;margin:.9rem 0 2rem;font-size:1.02rem}
 .tiny{font-size:.9rem;color:var(--ink-500)}
 
 /* Skip link */
@@ -160,6 +160,7 @@ section[id]{scroll-margin-top:84px}
 .case-row p{margin:0;color:var(--ink-700);font-size:.95rem}
 .case .case-stack{margin-top:auto;padding-top:1rem;border-top:1px solid var(--line);font-size:.8rem;color:var(--ink-500);line-height:1.75}
 .case .case-stack strong{color:var(--ink-900)}
+/* Draft placeholder highlight — unused in the live copy, kept for future drafts */
 .blank{background:var(--brand-100);border-bottom:1.5px dashed var(--brand-500);color:var(--brand-900);padding:0 .28rem;border-radius:3px;font-style:normal}
 
 /* ---------- Process timeline ---------- */
@@ -220,6 +221,21 @@ input:focus,textarea:focus{outline:none;border-color:var(--brand-600);box-shadow
 .foot-brand img{width:140px;height:auto;filter:drop-shadow(0 2px 4px rgba(0,0,0,.1))}
 .foot-brand p{margin:.5rem 0 0;font-size:.88rem}
 .foot-nav a{margin:0 10px;font-weight:600;font-size:.92rem}
+
+/* ---------- Editorial section headings ---------- */
+.eyebrow{
+  font-family:Inter,sans-serif;font-size:.72rem;font-weight:800;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--brand-700);margin:0 0 .5rem;
+}
+.section h2{
+  font-size:clamp(24px,2.6vw,32px);line-height:1.2;margin:0 0 .35rem;position:relative;
+  padding-bottom:.7rem;
+}
+.section h2::after{
+  content:"";position:absolute;left:0;bottom:0;width:44px;height:3px;
+  background:var(--brand-700);border-radius:2px;
+}
+.two-col .eyebrow,.two-col h2{grid-column:1}
 
 /* ---------- Responsive ---------- */
 @media (max-width:900px){
