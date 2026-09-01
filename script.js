@@ -53,6 +53,16 @@ if (demoLoad) {
     s.onload = () => {
       root.innerHTML = '';
       window.EstatemapDemo.mount(root);
+      // Mounting inserts the editors and their output, so whatever the browser
+      // had scrolled to is no longer where it was. Re-anchor on the section
+      // when the visitor came for it, or a badge click lands them mid-page.
+      if (location.hash === '#try') {
+        const target = document.getElementById('try');
+        if (target) {
+          const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+          target.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+        }
+      }
     };
     s.onerror = () => {
       demoLoad.disabled = false;
@@ -61,5 +71,19 @@ if (demoLoad) {
       if (hint) hint.textContent = 'The demo failed to load. Reload the page and try again.';
     };
     document.head.appendChild(s);
+  });
+
+  // Arriving at the demo deliberately is a request to run it, so skip the
+  // second click. The repository's README badge links to #try, and so does this
+  // page's own "Run it in your browser" button, whose label promises exactly
+  // that. Visitors who never ask still pay nothing for the download.
+  // demoLoad is disabled the moment loading starts, so this cannot double-fire.
+  const loadDemoOnRequest = () => { if (!demoLoad.disabled) demoLoad.click(); };
+  if (location.hash === '#try') loadDemoOnRequest();
+  window.addEventListener('hashchange', () => {
+    if (location.hash === '#try') loadDemoOnRequest();
+  });
+  document.querySelectorAll('a[href="#try"]').forEach(a => {
+    a.addEventListener('click', loadDemoOnRequest);
   });
 }
