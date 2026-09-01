@@ -4,60 +4,86 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Canyonland Technologies Inc. — BI & Analytics Consulting</title>
+  <title>Canyonland Technologies — Mainframe Payroll Systems &amp; Legacy Data Modernization</title>
   <meta name="description"
-    content="Canyonland Technologies Inc. — end-to-end Business Intelligence and Data Analytics consulting: strategy, data engineering, dashboards, AI enablement." />
+    content="A specialist practice for organizations whose payroll, HR, and finance still run on the mainframe. We keep those systems dependable through every cycle and fiscal-year close—then make their data reachable by modern SQL, BI, and AI tooling." />
+  <link rel="canonical" href="https://www.canyonlandtech.com/" />
+  <meta name="theme-color" content="#d35300" />
+
+  <!-- Open Graph / social sharing -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Canyonland Technologies Inc." />
+  <meta property="og:url" content="https://www.canyonlandtech.com/" />
+  <meta property="og:title" content="Canyonland Technologies — Mainframe Payroll Systems &amp; Legacy Data Modernization" />
+  <meta property="og:description"
+    content="We keep mainframe payroll, HR, and finance systems dependable—then make their data reachable by modern SQL, BI, and AI tooling." />
+  <meta property="og:image" content="https://www.canyonlandtech.com/assets/og-image.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="Canyonland Technologies Inc." />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Canyonland Technologies — Mainframe Payroll Systems &amp; Legacy Data Modernization" />
+  <meta name="twitter:description"
+    content="We keep mainframe payroll, HR, and finance systems dependable—then make their data reachable by modern SQL, BI, and AI tooling." />
+  <meta name="twitter:image" content="https://www.canyonlandtech.com/assets/og-image.png" />
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
     href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Playfair+Display:wght@600;700;800&display=swap"
     rel="stylesheet">
 
-  <!-- Updated favicon set -->
   <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png">
   <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
   <link rel="icon" type="image/png" sizes="48x48" href="assets/favicon-48.png">
+  <link rel="icon" type="image/png" sizes="96x96" href="assets/favicon-96.png">
   <link rel="icon" type="image/png" sizes="192x192" href="assets/favicon-192.png">
   <link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png">
 
   <link rel="stylesheet" href="styles.css" />
 
-  <style>
-    /* Heading serif to echo wordmark */
-    h1,
-    h2,
-    h3,
-    h4 {
-      font-family: "Playfair Display", serif;
-      letter-spacing: .2px;
-    }
-
-    body {
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-    }
-  </style>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "ProfessionalService",
+    "name": "Canyonland Technologies Inc.",
+    "url": "https://www.canyonlandtech.com/",
+    "logo": "https://www.canyonlandtech.com/assets/logo-400.png",
+    "image": "https://www.canyonlandtech.com/assets/og-image.png",
+    "description": "Specialist practice for mainframe payroll and HR systems: production operations, legacy reporting converted to SQL, and AI-assisted documentation of COBOL estates.",
+    "email": "info@canyonlandtech.com",
+    "telephone": "+1-708-765-6254",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "205 North Michigan Avenue, Suite 810",
+      "addressLocality": "Chicago",
+      "addressRegion": "IL",
+      "postalCode": "60601",
+      "addressCountry": "US"
+    },
+    "areaServed": "US",
+    "knowsAbout": ["z/OS", "COBOL", "JCL", "Datacom/IDMS", "Payroll systems", "Legacy modernization", "Business intelligence"]
+  }
+  </script>
 </head>
 
-<form name="contact" netlify hidden>
-  <input type="text" name="name" />
-  <input type="email" name="email" />
-  <textarea name="message"></textarea>
-</form>
-
 <body>
+  <a class="skip-link" href="#top">Skip to content</a>
+
   <header class="site-header">
     <div class="container">
-      <a class="logo" href="#top" aria-label="Canyonland Technologies Inc.">
-        <img src="assets/logo.png" alt="Canyonland Technologies Inc.">
+      <a class="logo" href="#top" aria-label="Canyonland Technologies Inc. — home">
+        <img src="assets/logo-400.png" width="400" height="180" alt="Canyonland Technologies Inc.">
       </a>
-      <nav class="nav">
+      <nav class="nav" id="primary-nav" aria-label="Primary">
         <a href="#services">Services</a>
-        <a href="#industries">Industries</a>
+        <a href="#work">Work</a>
+        <a href="#who">Who we serve</a>
         <a href="#process">Process</a>
         <a href="#about">About</a>
         <a href="#contact" class="btn btn-small">Contact</a>
       </nav>
-      <button class="nav-toggle" aria-label="Open menu" aria-expanded="false">☰</button>
+      <button class="nav-toggle" aria-label="Open menu" aria-expanded="false" aria-controls="primary-nav">☰</button>
     </div>
   </header>
 
@@ -65,104 +91,240 @@
     <section class="hero">
       <div class="container hero-grid">
         <div>
-          <h1>Turn your data into confident decisions.</h1>
-          <p class="lead">We deliver end-to-end <strong>BI and Analytics</strong>—from data engineering and governance
-            to executive-ready dashboards and AI-assisted insights.</p>
+          <h1>The system still runs. Getting answers out of it is the hard part.</h1>
+          <p class="lead">Canyonland is a specialist practice for organizations whose payroll, HR, and finance still run
+            on the mainframe. We keep those systems dependable through every cycle and fiscal-year close—then make their
+            data reachable by modern SQL, BI, and AI tooling.</p>
           <div class="cta">
-            <a href="#contact" class="btn">Get a free consult</a>
-            <a href="#services" class="btn btn-ghost">Explore services</a>
+            <a href="#contact" class="btn">Start a conversation</a>
+            <a href="#work" class="btn btn-ghost">See the work</a>
           </div>
           <ul class="badges">
-            <li>Chicago, IL • Remote-first</li>
-            <li>Enterprise & SMB</li>
-            <li>Secure by design</li>
+            <li>z/OS · COBOL · JCL · Datacom/IDMS</li>
+            <li>Public sector &amp; prime contractors</li>
+            <li>Chicago, IL · Remote-first</li>
           </ul>
         </div>
-        <div class="hero-card" role="img" aria-label="Abstract data visualization card">
-          <div class="kpi">
-            <span class="kpi-label">Data Latency</span>
-            <span class="kpi-value">↓ 80%</span>
-          </div>
-          <div class="kpi">
-            <span class="kpi-label">Report Adoption</span>
-            <span class="kpi-value">↑ 3×</span>
-          </div>
-          <div class="kpi">
-            <span class="kpi-label">Cost to Insight</span>
-            <span class="kpi-value">↓ 45%</span>
-          </div>
-        </div>
+        <aside class="hero-card" aria-labelledby="glance-heading">
+          <h2 id="glance-heading" class="glance-title">Practice at a glance</h2>
+          <dl class="glance">
+            <div>
+              <dt>Production payroll</dt>
+              <dd>Regular, overtime, grant-funded, and supplemental cycles run end to end</dd>
+            </div>
+            <div>
+              <dt>Platforms</dt>
+              <dd>z/OS, COBOL, JCL, Roscoe RPF, CA&#8209;Scheduler, Panvalet, Datacom/IDMS</dd>
+            </div>
+            <div>
+              <dt>Modernization</dt>
+              <dd>Legacy report logic to SQL, BI-ready data, AI-assisted documentation</dd>
+            </div>
+          </dl>
+        </aside>
       </div>
     </section>
 
     <section id="services" class="section">
       <div class="container">
         <h2>What we do</h2>
+        <p class="section-lede">Three things, in the order most clients need them.</p>
         <div class="cards three">
           <article class="card">
-            <h3>Data Engineering</h3>
-            <p>Modern ETL/ELT, lake/warehouse design, orchestration, and quality—built for scale and governed for trust.
-            </p>
+            <h3>Payroll &amp; Batch Operations</h3>
+            <p>We take ownership of the cycle. Setup and execution across every payroll type, fiscal-year transitions,
+              and the failures that arrive at the worst possible hour.</p>
             <ul>
-              <li>SQL Server, Databricks, Snowflake</li>
-              <li>Python pipelines, dbt</li>
-              <li>Azure DevOps CI/CD</li>
+              <li>Cycle setup, execution, off-cycle runs</li>
+              <li>Abend analysis and recovery plans</li>
+              <li>Tape, dataset, and scheduler management</li>
             </ul>
           </article>
           <article class="card">
-            <h3>BI & Dashboards</h3>
-            <p>Executive-grade visuals and self-service analytics with solid semantic models and versioned metrics.</p>
+            <h3>Legacy Data, Made Reachable</h3>
+            <p>The numbers your organization is judged on already exist. They're just trapped in report-writer jobs
+              nobody can read. We convert that logic to SQL with output parity, and open the data to real analysis.</p>
             <ul>
-              <li>Power BI, Looker, Tableau</li>
-              <li>Metrics layers & governance</li>
-              <li>KPI definitions & OKRs</li>
+              <li>EZTrieve and report-writer logic to SQL</li>
+              <li>Statutory and compliance reporting</li>
+              <li>Power BI, Excel, and warehouse-ready extracts</li>
             </ul>
           </article>
           <article class="card">
-            <h3>AI-Assisted Analytics</h3>
-            <p>LLM-powered insights, retrieval-augmented answers, and copilots—responsibly and securely integrated.</p>
+            <h3>AI-Assisted Modernization</h3>
+            <p>The risk in a legacy estate isn't the code—it's that the people who understand it are retiring. We
+              generate maintainer-grade documentation grounded in the source itself.</p>
             <ul>
-              <li>LangChain, vector search</li>
-              <li>Prompt & eval frameworks</li>
-              <li>Security & data privacy</li>
+              <li>Automated COBOL and JCL documentation</li>
+              <li>Batch flow and data lineage mapping</li>
+              <li>Knowledge transfer and runbooks</li>
             </ul>
           </article>
         </div>
       </div>
     </section>
 
-    <section id="industries" class="section alt">
+    <section id="work" class="section alt">
       <div class="container">
-        <h2>Industries</h2>
-        <div class="chips">
-          <span class="chip">Public Sector & Payroll</span>
-          <span class="chip">Financial Services</span>
-          <span class="chip">Healthcare & Life Sciences</span>
-          <span class="chip">Education</span>
-          <span class="chip">SMB & Startups</span>
+        <h2>Selected work</h2>
+        <p class="section-lede">Client names and agency identities are withheld under contract. Engagements are
+          described at the level our agreements permit.</p>
+
+        <div class="cases">
+
+          <article class="card case">
+            <span class="chip">Public sector &amp; payroll</span>
+            <h3>Production payroll for a statewide workforce</h3>
+            <!-- Confidentiality: this line names no one. To name the prime vendor instead, use:
+                 "Subcontracted through AlertIT, prime systems integrator" — but see the disclosure note first. -->
+            <p class="case-client">Prime systems integrator · large public-sector agency</p>
+            <div class="case-row">
+              <p class="case-label">Challenge</p>
+              <p>Multiple parallel payroll streams—regular, overtime, and separately funded grant payrolls—running on a
+                mainframe platform where one missed cycle means <span class="blank">[[ N ]]</span> people are not paid on
+                time.</p>
+            </div>
+            <div class="case-row">
+              <p class="case-label">What we do</p>
+              <p>Own setup and execution of every payroll type, including supplemental and off-cycle runs; maintain the
+                reporting programs behind them; and carry the platform through fiscal-year transitions, where dataset,
+                calendar, and holiday-table changes must land together and in order.</p>
+            </div>
+            <div class="case-row">
+              <p class="case-label">Outcome</p>
+              <p><span class="blank">[[ e.g. "N consecutive on-time cycles across FY__–FY__" ]]</span>, with weekly
+                written status reporting to agency and vendor stakeholders.</p>
+            </div>
+            <p class="case-stack"><strong>Environment:</strong> z/OS · COBOL · JCL · Roscoe RPF · CA&#8209;Scheduler ·
+              Panvalet · Datacom/IDMS</p>
+          </article>
+
+          <article class="card case">
+            <span class="chip">Reliability engineering</span>
+            <h3>Root-cause recovery on a failed payroll cycle</h3>
+            <p class="case-client">Prime systems integrator · large public-sector agency</p>
+            <div class="case-row">
+              <p class="case-label">Challenge</p>
+              <p>A production payroll program abended mid-cycle while a concurrent tape-management failure left output
+                datasets uncataloged—two faults presenting as one outage, against a deadline that does not move.</p>
+            </div>
+            <div class="case-row">
+              <p class="case-label">What we do</p>
+              <p>Isolated the abend to its failing step, separated it from the underlying tape library and retention-key
+                expiry issues, and rebuilt the affected datasets. Delivered a written recovery analysis and resolution
+                plan so the next occurrence is a checklist rather than an investigation.</p>
+            </div>
+            <div class="case-row">
+              <p class="case-label">Outcome</p>
+              <p>Cycle recovered within <span class="blank">[[ hours/days ]]</span>; the failure class is now documented
+                and handled by the operations team without escalation.</p>
+            </div>
+            <p class="case-stack"><strong>Environment:</strong> z/OS · COBOL · JCL · CA&#8209;1 tape management · virtual
+              tape · abend analysis</p>
+          </article>
+
+          <article class="card case">
+            <span class="chip">Legacy → analytics</span>
+            <h3>Statutory workforce reporting, moved off legacy tooling</h3>
+            <p class="case-client">Prime systems integrator · large public-sector agency</p>
+            <div class="case-row">
+              <p class="case-label">Challenge</p>
+              <p>Compliance and workforce reports—headcount, affirmative-action, and personnel breakdowns—were produced
+                by legacy report-writer jobs that few people could read and nobody could query ad hoc.</p>
+            </div>
+            <div class="case-row">
+              <p class="case-label">What we do</p>
+              <p>Converted legacy report-writer logic to SQL with output parity line for line, and made the underlying
+                employee data available for direct analysis and pivot-based summaries. Reporting logic became
+                reviewable, testable, and reusable.</p>
+            </div>
+            <div class="case-row">
+              <p class="case-label">Outcome</p>
+              <p><span class="blank">[[ e.g. "Workforce questions answered in minutes rather than a request queue"
+                  ]]</span></p>
+            </div>
+            <p class="case-stack"><strong>Environment:</strong> EZTrieve · SQL · Datacom · Excel modeling</p>
+          </article>
+
+          <article class="card case">
+            <span class="chip wip">In progress · AI</span>
+            <h3>Automated documentation for undocumented COBOL estates</h3>
+            <p class="case-client">Selected for an Oracle cloud innovation program</p>
+            <div class="case-row">
+              <p class="case-label">Challenge</p>
+              <p>Documentation for a decades-old estate either doesn't exist or describes a system from three decades
+                ago. The people who can fill the gap from memory are retiring.</p>
+            </div>
+            <div class="case-row">
+              <p class="case-label">What we do</p>
+              <p>Building a generator that reads COBOL source, JCL, and data dictionary definitions and produces
+                maintainer-grade documentation: what a program does, what it reads and writes, and where it sits in the
+                batch flow—grounded in the source rather than invented by the model.</p>
+            </div>
+            <div class="case-row">
+              <p class="case-label">Outcome</p>
+              <p>In development. <span class="blank">[[ update when there's a result worth naming ]]</span></p>
+            </div>
+            <p class="case-stack"><strong>Environment:</strong> Oracle Cloud Infrastructure · LLM tooling · COBOL · JCL ·
+              Datacom dictionary</p>
+          </article>
+
         </div>
       </div>
     </section>
 
-    <section id="process" class="section">
+    <section id="who" class="section">
+      <div class="container">
+        <h2>Who we serve</h2>
+        <p class="section-lede">A narrow practice, deliberately. These are the situations we're built for.</p>
+        <div class="chips">
+          <span class="chip">State &amp; local government</span>
+          <span class="chip">Prime contractors &amp; systems integrators</span>
+          <span class="chip">Payroll &amp; HR operations</span>
+          <span class="chip">Regulated enterprise</span>
+        </div>
+        <p class="tiny who-note">Typically engaged as a subcontractor to a prime holding the agency contract, or
+          directly by an organization carrying its own mainframe estate.</p>
+      </div>
+    </section>
+
+    <section id="process" class="section alt">
       <div class="container">
         <h2>How we deliver</h2>
         <ol class="timeline">
-          <li><strong>Discover:</strong> clarify outcomes, stakeholders, data sources.</li>
-          <li><strong>Design:</strong> architect models, pipelines, and governance.</li>
-          <li><strong>Build:</strong> implement & test; CI/CD to your cloud.</li>
-          <li><strong>Measure:</strong> define KPIs, instrument adoption.</li>
-          <li><strong>Enable:</strong> train teams; hand off with playbooks.</li>
+          <li><strong>Assess:</strong> inventory the estate—programs, jobs, data stores, and who still understands them.
+          </li>
+          <li><strong>Stabilize:</strong> take ownership of the cycle; document failure modes and recovery paths.</li>
+          <li><strong>Expose:</strong> convert reporting logic to SQL so the data can finally be queried.</li>
+          <li><strong>Modernize:</strong> layer BI and AI tooling on top without disturbing the system of record.</li>
+          <li><strong>Transfer:</strong> train the team and hand off runbooks, so the knowledge outlives the contract.
+          </li>
         </ol>
       </div>
     </section>
 
-    <section id="about" class="section alt">
+    <section id="about" class="section">
       <div class="container two-col">
         <div>
           <h2>About Canyonland</h2>
-          <p>Canyonland Technologies Inc. is a Chicago-based BI & Analytics consultancy. We combine strong data
-            engineering, practical AI, and crisp visualization to help teams move faster with fewer risks.</p>
+          <p>Canyonland Technologies Inc. is an independent consulting practice specializing in the systems most firms
+            would rather not touch: mainframe payroll, HR, and finance platforms that have been in production for
+            decades and cannot be allowed to fail.</p>
+          <p>We work at the seam between those systems and the modern data stack—keeping the batch running on one side,
+            and making its data legible to SQL, BI, and AI tooling on the other. Most engagements come through prime
+            contractors serving public-sector clients.</p>
+
+          <div class="principal">
+            <h3>Rehan Ali — Principal Consultant</h3>
+            <p>Rehan runs production payroll on z/OS for a statewide public-sector workforce: cycle execution across
+              regular, overtime, and grant-funded payrolls, fiscal-year transitions, abend recovery, and the reporting
+              programs behind them. He converts legacy report-writer logic to SQL, leads knowledge transfer to client
+              staff, and was selected for Oracle's cloud innovation program to build AI-assisted documentation tooling
+              for COBOL estates.</p>
+            <p class="tiny"><span class="blank">[[ optional: LinkedIn URL, certifications, years in practice
+                ]]</span></p>
+          </div>
+
           <ul class="contact-list">
             <li><strong>Address:</strong> 205 North Michigan Avenue, Suite 810, Chicago, IL 60601</li>
             <li><strong>Phone:</strong> <a href="tel:+17087656254">+1 (708) 765-6254</a></li>
@@ -172,44 +334,50 @@
         <aside class="aside">
           <h3>Core stack</h3>
           <ul>
-            <li>Azure DevOps • SQL Server • Python</li>
-            <li>Power BI • dbt • Databricks</li>
-            <li>Git • CI/CD • IaC (Bicep/Terraform)</li>
+            <li>z/OS • COBOL • JCL • Roscoe RPF</li>
+            <li>CA-Scheduler • CA-1 • Panvalet</li>
+            <li>Datacom/IDMS • EZTrieve • SQL</li>
+            <li>Python • Power BI • Excel modeling</li>
+            <li>Oracle Cloud Infrastructure • Git</li>
           </ul>
+          <p class="tiny aside-note">Capability statement available on request.</p>
         </aside>
       </div>
     </section>
 
-    <section id="contact" class="section">
+    <section id="contact" class="section alt">
       <div class="container">
         <h2>Contact us</h2>
-        <p>Tell us about your project. We usually reply within one business day.</p>
+        <p class="section-lede">Tell us what's stuck. We usually reply within one business day.</p>
 
-        <!-- Netlify-compatible static form -->
-        <form name="contact" method="POST" data-netlify="true" netlify-honeypot="bot-field" action="success.html"
+        <form name="contact" method="POST" data-netlify="true" netlify-honeypot="bot-field" action="/success.html"
           class="contact-form">
           <input type="hidden" name="form-name" value="contact" />
-          <!-- Honeypot field (hidden from real users) -->
-          <p style="position:absolute; left:-9999px;">
-            <label>Don’t fill this out: <input name="bot-field" /></label>
+          <p class="hp-field">
+            <label>Don't fill this out: <input name="bot-field" tabindex="-1" autocomplete="off" /></label>
           </p>
 
           <div class="form-row">
             <label for="name">Name</label>
-            <input id="name" name="name" required />
+            <input id="name" name="name" autocomplete="name" required />
+          </div>
+
+          <div class="form-row">
+            <label for="org">Organization <span class="optional">(optional)</span></label>
+            <input id="org" name="organization" autocomplete="organization" />
           </div>
 
           <div class="form-row">
             <label for="email">Email</label>
-            <input id="email" type="email" name="email" required />
+            <input id="email" type="email" name="email" autocomplete="email" required />
           </div>
 
           <div class="form-row">
-            <label for="message">Message</label>
+            <label for="message">What are you dealing with?</label>
             <textarea id="message" name="message" rows="5" required></textarea>
           </div>
 
-          <button type="submit" class="btn">Send message</button>
+          <button type="submit" class="btn btn-submit">Send message</button>
         </form>
         <p class="tiny">Prefer email? <a href="mailto:info@canyonlandtech.com">info@canyonlandtech.com</a></p>
       </div>
@@ -219,16 +387,25 @@
   <footer class="site-footer">
     <div class="container foot-grid">
       <div class="foot-brand">
-        <img src="assets/logo.png" alt="Canyonland Technologies Inc.">
+        <img src="assets/logo-320.png" width="320" height="144" alt="Canyonland Technologies Inc.">
         <p>© <span id="year"></span> Canyonland Technologies Inc. All rights reserved.</p>
       </div>
-      <nav class="foot-nav">
+      <nav class="foot-nav" aria-label="Footer">
         <a href="#services">Services</a>
+        <a href="#work">Work</a>
         <a href="#about">About</a>
         <a href="#contact">Contact</a>
       </nav>
     </div>
   </footer>
+
+  <!-- Netlify build-time form detection -->
+  <form name="contact" data-netlify="true" hidden>
+    <input type="text" name="name" />
+    <input type="text" name="organization" />
+    <input type="email" name="email" />
+    <textarea name="message"></textarea>
+  </form>
 
   <script src="script.js"></script>
 </body>
