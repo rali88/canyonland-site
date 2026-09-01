@@ -85,6 +85,23 @@ All body text measures **≥ 4.5:1** against its ground. Re-measure before
 shipping any colour change — a previous version of this site shipped muted text
 at 1.84:1 for months.
 
+## The portfolio demo
+
+`estatemap-demo.js` is a JavaScript port of the extraction rules in the
+in-house COBOL/JCL documentation tool. It runs entirely in the visitor's
+browser; nothing is uploaded.
+
+It is **fetched on click, never with the page**. At ~34KB it would otherwise
+blow the payload budget for the majority of visitors who never open it. The
+loader lives at the end of `script.js`, guarded on `#demo-load` so it costs
+nothing on other pages.
+
+A second implementation is a liability. If the port disagrees with the Python
+tool, the demo quietly contradicts the determinism the tool is sold on. The
+port is therefore checked against the same fixtures by a harness in the tool's
+repository (`tests/browser/`), which deep-compares every extracted fact and
+must report zero divergences. **Re-run it after changing either implementation.**
+
 ## Content constraints
 
 **Client identities are confidential.** Engagements are attributed as

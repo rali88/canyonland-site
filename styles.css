@@ -195,6 +195,59 @@ code{
 .focus-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:0;border-top:1px solid var(--rule)}
 .focus-list div{padding:1.15rem 1.5rem 1.15rem 0;border-bottom:1px solid var(--rule);font-size:.98rem;color:var(--ink-2)}
 
+/* ---------- Portfolio demo ---------- */
+.demo{margin-top:clamp(24px,3vw,36px)}
+.demo-grid{display:grid;grid-template-columns:1fr 1fr;gap:clamp(16px,2vw,26px)}
+.demo-pane{display:grid;gap:.45rem}
+.demo-pane label{
+  font-family:var(--mono);font-size:.7rem;font-weight:500;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--ink-3);
+}
+.demo textarea{
+  font-family:var(--mono);font-size:.78rem;line-height:1.55;color:var(--ink);
+  background:var(--paper);border:1px solid var(--rule);border-radius:0;
+  padding:.8rem;width:100%;resize:vertical;white-space:pre;overflow-x:auto;
+}
+.demo textarea:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.demo-actions{display:flex;flex-wrap:wrap;gap:.7rem;margin-top:1.2rem}
+.demo-output{margin-top:clamp(26px,3vw,38px)}
+.demo-output:empty{margin-top:0}
+.demo-summary{
+  font-family:var(--mono);font-size:.74rem;letter-spacing:.05em;
+  color:var(--ink-3);padding-bottom:.9rem;border-bottom:1px solid var(--rule-strong);
+}
+.demo-program{padding:1.6rem 0;border-bottom:1px solid var(--rule)}
+.demo-program h4{
+  font-size:1.12rem;font-weight:500;margin:0 0 .2rem;color:var(--ink);
+  font-family:var(--mono);letter-spacing:.02em;
+}
+.demo-program h5{
+  font-family:var(--mono);font-size:.68rem;font-weight:500;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--ink-3);margin:1.5rem 0 .6rem;
+}
+.demo-meta{font-family:var(--mono);font-size:.72rem;color:var(--ink-3);margin:0 0 .4rem}
+.demo-note{font-size:.9rem;color:var(--ink-2);margin:.4rem 0}
+.demo-table{
+  width:100%;border-collapse:collapse;font-size:.82rem;color:var(--ink-2);
+  display:block;overflow-x:auto;
+}
+.demo-table th{
+  font-family:var(--mono);font-size:.66rem;font-weight:500;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--ink-3);text-align:left;
+  padding:.45rem .8rem .45rem 0;border-bottom:1px solid var(--rule-strong);
+}
+.demo-table td{padding:.45rem .8rem .45rem 0;border-bottom:1px solid var(--rule);vertical-align:top}
+.demo-table code{background:none;border:none;padding:0;font-size:.95em}
+.demo-flow{list-style:none;margin:.4rem 0 0;padding:0;font-size:.85rem;color:var(--ink-2)}
+.demo-flow li{padding:.28rem 0;border-bottom:1px solid var(--rule)}
+.demo-flow li:last-child{border-bottom:none}
+.demo-warn{font-family:var(--mono);font-size:.68rem;color:var(--accent);letter-spacing:.06em}
+.demo-warn-block{font-size:.9rem;color:var(--ink-2);padding:1rem 0}
+
+@media (max-width:720px){
+  .demo-grid{grid-template-columns:1fr}
+}
+
 /* ---------- Contact ---------- */
 .form{display:grid;gap:1.4rem;max-width:560px;margin-top:.5rem}
 .field{display:grid;gap:.45rem}
