@@ -48,10 +48,12 @@ Lifecycle · Portfolio · Focus · About · Contact; there is deliberately no
 separate "Work" item, because two names for the same promise made the nav
 ambiguous.
 
-Do not describe an in-house tool as publicly available unless the repository
-actually is. An earlier draft of the portfolio page claimed the source could be
-read and run while the repo was private — the same failure as the unverifiable
-statistics below.
+Do not describe a tool as publicly available unless its repository actually is.
+An earlier draft of the portfolio page claimed the source could be read and run
+while the repo was private — the same failure as the unverifiable statistics
+below. `estatemap` is now public at <https://github.com/rali88/estatemap>, so
+the page says so; if a future tool is not published, describe it as in-house and
+drop every claim about reading or running it.
 
 ## Design system — technical editorial
 

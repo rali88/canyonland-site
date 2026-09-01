@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Portfolio — Canyonland Technologies</title>
   <meta name="description"
-    content="Tools we build and maintain in house, starting with estatemap: a deterministic documentation generator that reads COBOL and JCL source and writes down what it actually says." />
+    content="Open-source tools we build, starting with estatemap: a deterministic documentation generator that reads COBOL and JCL source and writes down what it actually says." />
   <link rel="canonical" href="https://www.canyonlandtech.com/portfolio.html" />
   <meta name="theme-color" content="#14181d" />
 
@@ -67,9 +67,9 @@
       <div class="wrap">
         <p class="eyebrow">Portfolio</p>
         <h1>What this looks like in production.</h1>
-        <p class="standfirst">Two kinds of work. Client engagements, described at the level our agreements permit, and
-          the tools we build and maintain ourselves, where no agreement limits the detail. Each engagement is tagged
-          with the lifecycle stages it covers.</p>
+        <p class="standfirst">Two kinds of work. Client engagements, described at the level our agreements permit,
+          and the tools we build ourselves, which are open source — you can read the code, run it, and judge the
+          engineering directly. Each engagement is tagged with the lifecycle stages it covers.</p>
       </div>
     </section>
 
@@ -197,7 +197,7 @@
 
     <section class="band" id="estatemap">
       <div class="wrap">
-        <p class="eyebrow">In-house tooling · Python</p>
+        <p class="eyebrow">Open source · Python · MIT</p>
         <h2>estatemap</h2>
         <p class="standfirst narrow">A documentation generator for COBOL and JCL estates. It reads the source that is
           actually running and writes down what it says — with a file and line reference for every fact.</p>
@@ -206,7 +206,7 @@
           <p class="case-no">Tool</p>
           <div>
             <h3>Documentation that outlives the people who remember</h3>
-            <p class="case-client">Built and maintained in house · Separate from engagement 04 above</p>
+            <p class="case-client">Built and maintained by us · Separate from engagement 04 above</p>
             <div class="case-grid">
               <div>
                 <p class="case-label">Problem</p>
@@ -281,8 +281,14 @@
           <div><strong>estatemap check</strong><br>Fails a build when gaps appear</div>
         </div>
 
-        <p class="case-note">The tool is alpha, in active development, and maintained in house rather than published.
-          Everything described above is what it does today, not what it is planned to do.</p>
+        <div class="hero-actions">
+          <a href="https://github.com/rali88/estatemap" class="btn">Read the source on GitHub</a>
+          <a href="#try" class="btn btn--quiet">Run it in your browser</a>
+        </div>
+
+        <p class="case-note">Alpha, and in active development. Everything described above is what it does today, not
+          what it is planned to do — and the source is public, so you can check that for yourself rather than taking
+          our word for it.</p>
       </div>
     </section>
 
@@ -303,7 +309,8 @@
         <p class="case-note">This is a JavaScript port of the extraction rules, checked against the same fixtures as
           the Python tool: it agrees with it on every extracted fact — files, access modes, record layouts, the PERFORM
           graph, calls, SQL, and every cross-reference. A demo that quietly disagreed would undermine the determinism
-          the tool is built on.</p>
+          the tool is built on, so the comparison is
+          <a href="https://github.com/rali88/estatemap/tree/main/tests/browser">part of the test suite</a>.</p>
       </div>
     </section>
 
