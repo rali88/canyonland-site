@@ -171,4 +171,27 @@ dev ──commit──▶ push ──▶ PR into main ──▶ review ──▶
   git checkout dev && git merge main && git push
   ```
 
-- Delete a short-lived branch once merged. Its deploy preview retires with it.
+- Delete a short-lived branch once merged. **Its deploy preview does not go with
+  it** — `deploy-preview-1` is still served long after `site-rebuild` was
+  deleted. Netlify preserves the most recent successful deploy of every context,
+  Deploy Previews included, so automatic deletion never reaches them and
+  retention settings are Enterprise-only anyway.
+
+  Old previews therefore stay publicly reachable, serving whatever that PR last
+  built. They are unlisted and `robots.txt` does not cover preview subdomains.
+  Worth removing for any preview that built content since corrected — a
+  withdrawn claim, a fixed defect, anything confidential.
+
+  Two ways to remove one. By hand: Netlify → Deploys → select the deploy →
+  Options → Delete deploy. Or through the API, which is the better answer once
+  this is more than an occasional tidy-up:
+
+  ```
+  curl -X DELETE -H "Authorization: Bearer $NETLIFY_TOKEN" \
+    https://api.netlify.com/api/v1/deploys/<deploy_id>
+  ```
+
+  That can run from a workflow on PR close, so previews are cleaned up as a
+  matter of course rather than remembered. It needs a Netlify personal access
+  token held as a repository secret — worth weighing, since a token with deploy
+  deletion rights is a meaningful thing to store.
