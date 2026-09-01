@@ -9,6 +9,8 @@ netlify.toml  robots.txt  sitemap.xml  assets/
 ```
 
 Preview locally with `python3 -m http.server` — there is nothing to compile.
+On Windows use `py -m http.server`; bare `python3` hits the Store alias stub
+and reports Python as missing even when it is installed.
 
 ## Positioning
 
@@ -91,3 +93,33 @@ Where a number would help but isn't verified, write the qualitative version.
 Render the page in a real browser and check: no console errors, no 4xx on any
 asset, one `h1`, contrast measured rather than eyeballed, and the mobile
 breakpoint at 390px. Screenshots at 1280px and 390px catch most regressions.
+
+## Branching and deploys
+
+`main` is production. Netlify publishes it on every push, so **merging to `main`
+is the act of going live** — there is no staging step between merge and public.
+Treat the pull request as the last checkpoint, not the first.
+
+`dev` is the working branch. Do the work there (or on a short-lived branch cut
+from it), and open a pull request into `main` when it is ready for review.
+
+```
+dev ──commit──▶ push ──▶ PR into main ──▶ review ──▶ merge ──▶ live
+```
+
+- **Never commit directly to `main`.** A direct push publishes unreviewed.
+- Every PR gets a Netlify Deploy Preview at
+  `deploy-preview-<n>--canyonlandtech.netlify.app`. Review there rather than on
+  a local server — the preview applies the real redirects, headers, and form
+  handling from `netlify.toml`, which a plain static server does not.
+- The preview's contact form is live. Submissions land in the real Netlify
+  Forms inbox, so treat any test submission as a real one.
+- Run the `Before shipping` checks against the deploy preview before merging.
+- After a merge, resync `dev` before starting the next batch of work, or later
+  PRs will surface conflicts that are not really yours:
+
+  ```
+  git checkout dev && git merge main && git push
+  ```
+
+- Delete a short-lived branch once merged. Its deploy preview retires with it.
