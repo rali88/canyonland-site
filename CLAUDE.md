@@ -9,6 +9,8 @@ netlify.toml  robots.txt  sitemap.xml  assets/
 ```
 
 Preview locally with `python3 -m http.server` — there is nothing to compile.
+On Windows use `py -m http.server`; bare `python3` hits the Store alias stub
+and reports Python as missing even when it is installed.
 
 ## Positioning
 
