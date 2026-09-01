@@ -74,10 +74,14 @@ jobs:
 
           # One listing serves every requested PR: page through the site's
           # deploys once and keep the deploy-preview entries. The cap stops a
-          # surprise from turning into an unbounded loop.
+          # surprise from turning into an unbounded loop, but reaching it means
+          # the listing is incomplete — tracked, because "no previews found"
+          # then means "not found in what was read", which is not the same
+          # thing. Old PRs are exactly what the manual trigger is for.
           all=""
           page=1
-          while [ "$page" -le 20 ]; do
+          complete=0
+          while [ "$page" -le 50 ]; do
             body=$(curl -sS --fail-with-body -H "$AUTH" \
               "${API}/sites/${NETLIFY_SITE_ID}/deploys?page=${page}&per_page=100") || {
               echo "::error::Failed to list deploys (page ${page}). Check the token and site id."
@@ -85,7 +89,10 @@ jobs:
             }
 
             count=$(printf '%s' "$body" | jq 'length')
-            [ "$count" -eq 0 ] && break
+            if [ "$count" -eq 0 ]; then
+              complete=1
+              break
+            fi
 
             rows=$(printf '%s' "$body" | jq -r \
               '.[] | select(.context == "deploy-preview" and .review_id != null) | "\(.review_id)\t\(.id)"')
@@ -94,13 +101,25 @@ jobs:
             page=$((page + 1))
           done
 
+          if [ "$complete" -ne 1 ]; then
+            echo "::warning::Stopped at the page cap; the deploy listing is incomplete."
+          fi
+
           overall=0
           deleted=0
           while IFS= read -r pr; do
             # A PR accumulates one preview per push, so match them all.
             ids=$(printf '%s' "$all" | awk -F'\t' -v pr="$pr" '$1 == pr {print $2}')
             if [ -z "$ids" ]; then
-              echo "PR #${pr}: no deploy previews found."
+              if [ "$complete" -eq 1 ]; then
+                echo "PR #${pr}: no deploy previews found."
+              else
+                # Finding nothing in a truncated listing proves nothing, and
+                # exiting 0 here would leave previews public while reporting
+                # success.
+                echo "::error::PR #${pr}: none found, but the listing was truncated, so this is unproven."
+                overall=1
+              fi
               continue
             fi
 
