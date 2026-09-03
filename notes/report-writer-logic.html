@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Why report-writer logic resists replacement — Canyonland Technologies</title>
+  <meta name="description" content="Easytrieve and COBOL report writer hold business rules that exist nowhere else. Converting them means output parity, not approximation." />
+  <link rel="canonical" href="https://www.canyonlandtech.com/notes/report-writer-logic.html" />
+  <meta name="theme-color" content="#14181d" />
+
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="Canyonland Technologies Inc." />
+  <meta property="og:url" content="https://www.canyonlandtech.com/notes/report-writer-logic.html" />
+  <meta property="og:title" content="Why report-writer logic resists replacement — Canyonland Technologies" />
+  <meta property="og:description" content="Easytrieve and COBOL report writer hold business rules that exist nowhere else. Converting them means output parity, not approximation." />
+  <meta property="og:image" content="https://www.canyonlandtech.com/assets/og-image.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="Canyonland Technologies Inc." />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Why report-writer logic resists replacement — Canyonland Technologies" />
+  <meta name="twitter:description" content="Easytrieve and COBOL report writer hold business rules that exist nowhere else. Converting them means output parity, not approximation." />
+  <meta name="twitter:image" content="https://www.canyonlandtech.com/assets/og-image.png" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap"
+    rel="stylesheet">
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="48x48" href="/assets/favicon-48.png">
+  <link rel="icon" type="image/png" sizes="96x96" href="/assets/favicon-96.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon-192.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png">
+
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+
+  <header class="masthead">
+    <div class="wrap">
+      <a class="mark" href="/" aria-label="Canyonland Technologies Inc. — home">
+        <img src="/assets/logo-400.png" width="400" height="180" alt="Canyonland Technologies Inc.">
+      </a>
+      <nav class="menu" id="menu" aria-label="Primary">
+        <a href="/#lifecycle">Lifecycle</a>
+        <a href="/portfolio.html">Portfolio</a>
+        <a href="/notes.html" aria-current="true">Notes</a>
+        <a href="/#focus">Focus</a>
+        <a href="/#about">About</a>
+        <a href="/#contact" class="cta-link">Contact</a>
+      </nav>
+      <button class="menu-btn" aria-label="Open menu" aria-expanded="false" aria-controls="menu">☰</button>
+    </div>
+  </header>
+
+  <main id="main">
+
+    <section class="hero" id="top">
+      <div class="wrap">
+        <p class="eyebrow">Note · Model</p>
+        <h1>Why report-writer logic resists replacement.</h1>
+        <p class="standfirst">Easytrieve, CA-Earl, DYL-280 and COBOL report writer produce the numbers organizations
+          run on. Replacing them is rarely hard because the tools are old. It is hard because the report is the only
+          place the rules were ever written down.</p>
+      </div>
+    </section>
+
+    <section class="band">
+      <div class="wrap prose">
+        <h2>The report is the specification</h2>
+        <p>Ask what determines whether an employee appears on a headcount report and you will usually be pointed at
+          the report. Not at a document describing it — at the job that produces it. The eligibility rule, the
+          effective-date window, the treatment of someone who transferred mid-period: all of it exists as procedural
+          code, accreted over decades, with the original authors long retired.</p>
+        <p>This is why "we'll rewrite it in SQL" underestimates the work. The rewriting is not the problem. Knowing
+          what to rewrite is.</p>
+
+        <h2>What is actually buried in there</h2>
+        <ul>
+          <li><strong>Eligibility and exclusion.</strong> Which records count, which are suppressed, and the special
+            cases — terminated but still paid, on leave, dual appointment — each added in response to something that
+            went wrong once.</li>
+          <li><strong>Proration and apportionment.</strong> Splitting a value across departments, funds or periods,
+            with a rounding rule that quietly decides who absorbs the remainder.</li>
+          <li><strong>Retroactive adjustment.</strong> Corrections applied to a closed period, and the decision about
+            whether they land in the period they belong to or the period they were entered.</li>
+          <li><strong>Rounding.</strong> Not a detail. Half-adjusting at each step rather than rounding once at the
+            end produces different totals, and in a statutory report that difference is a discrepancy somebody has to
+            explain.</li>
+        </ul>
+
+        <h2>Sequence dependence versus set logic</h2>
+        <p>This is the deepest mismatch. A report writer walks a sorted file one record at a time, carrying state:
+          accumulating totals, watching for a <em>control break</em> when a key changes, emitting subtotals, resetting
+          accumulators, moving on. The shape of the output is a consequence of the order of the input.</p>
+        <p>SQL is set-based. It has no inherent notion of "the previous record" or "the moment the department
+          changed". Window functions and grouping sets express most of it, but the translation is not mechanical, and
+          the places it is least mechanical are exactly where the business rules hide: what happens at a break when
+          the group is empty, how a total behaves when a subordinate value is negative, whether a suppressed detail
+          line still contributes to the total above it.</p>
+        <p>A conversion that reproduces the arithmetic but not the break behaviour gives you a report that is right in
+          aggregate and wrong on the page.</p>
+
+        <h2>"Close enough" is not a category</h2>
+        <p>For compliance and statutory reporting there is no tolerance band. A workforce report filed with a
+          regulator either reconciles to the system of record or it does not. That constraint is useful, because it
+          makes the acceptance criterion unambiguous: <strong>output parity</strong>, line for line, against the
+          existing report, across a period long enough to contain the awkward cases.</p>
+
+        <h2>How to actually test it</h2>
+        <p>Run both. Keep the legacy job running and produce the new output alongside it for the same periods, then
+          compare mechanically rather than by inspection. Parity across one clean month proves very little. The value
+          is in the months containing a fiscal-year boundary, a retroactive correction, a mid-period transfer, a
+          terminated employee with a final payment.</p>
+        <p>Every divergence is then one of two things: a defect in the new logic, or a rule nobody knew about. Both
+          are worth finding, and the second is why this approach pays for itself — it is how the undocumented rule
+          finally gets written down.</p>
+        <p>Only once parity holds across those cases does switching off the original become a decision rather than a
+          gamble. The old job is cheap to keep running for another quarter. Discovering in front of an auditor that
+          the new one treats retroactive adjustments differently is not.</p>
+      </div>
+    </section>
+
+    <section class="band band--tint">
+      <div class="wrap">
+        <p class="eyebrow">If this is your problem</p>
+        <h2>Tell us what's stuck.</h2>
+        <p class="standfirst narrow">Describe what you are dealing with and we'll tell you honestly whether we're the
+          right people. The first consultation is free.</p>
+        <div class="hero-actions">
+          <a href="https://calendly.com/ceo-canyonlandtech" class="btn" target="_blank" rel="noopener">
+            Book a free 30-minute call</a>
+          <a href="/#contact" class="btn btn--quiet">Write to us instead</a>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="foot">
+    <div class="wrap">
+      <div>
+        <img src="/assets/logo-320.png" width="320" height="144" alt="Canyonland Technologies Inc.">
+        <p>© <span id="year"></span> Canyonland Technologies Inc.</p>
+      </div>
+      <nav aria-label="Footer">
+        <a href="/#lifecycle">Lifecycle</a>
+        <a href="/portfolio.html">Portfolio</a>
+        <a href="/notes.html">Notes</a>
+        <a href="/#about">About</a>
+        <a href="/#contact">Contact</a>
+      </nav>
+    </div>
+  </footer>
+
+  <script src="/script.js"></script>
+</body>
+
+</html>
