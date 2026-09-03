@@ -254,9 +254,16 @@ page called it "titles that appear in no budget line at all", which was wrong:
 the join is on a department-title *pair*, and most of those titles are funded
 under a different department. Most of the residue is staff charged to
 `D99 - Finance General`, a central accounting code the ordinance does not carry
-as an operating department. The genuinely unbudgeted residue is two orders of
-magnitude smaller. The verifier re-derives that split from source; do not
-restate the old claim.
+as an operating department — confirmed by Rehan on 2026-09-03. The genuinely
+unbudgeted residue is two orders of magnitude smaller. The verifier re-derives
+that split from source; do not restate the old claim.
+
+**Attribution explains department-level mismatch and nothing above it.** A
+person booked centrally sits inside both city-wide totals, so it cannot justify
+refusing the city-wide subtraction. The reason that subtraction fails is that an
+FTE measures work and a headcount measures people: budgeted hours become
+fractional FTE but whole individuals. Do not reach for attribution again at city
+level — that mistake has already been made and corrected once.
 
 **The page refuses to publish a vacancy rate.** The subtraction is available and
 wrong: the two sides attribute the same people to different departments, so
