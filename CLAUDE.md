@@ -76,6 +76,10 @@ report-writer semantics. **Those claims are the author's to verify**, not
 something to extend from general knowledge. Adding a new note means adding
 something you know first-hand.
 
+The three notes published on 2026-09-02 were reviewed and confirmed by Rehan on
+that date. Treat that as the baseline: existing claims are checked, and anything
+added since is not until he says so.
+
 ## Design system — technical editorial
 
 Type is **IBM Plex Sans + IBM Plex Mono**, loaded from Google Fonts. This is not
@@ -145,6 +149,13 @@ decoder that silently disagrees with the first is worse than one decoder.
 
 The Tier 2 earnings cap is **a stated parameter of the synthetic dataset**, not
 any jurisdiction's statutory figure. Do not present it as real.
+
+The Lab's domain claims — the four exclusion causes as a realistic set, a
+contribution past the cap framed as a refund owed, and overtime on an FLSA-exempt
+employee as an HR question before a payroll one — were confirmed by Rehan on
+2026-09-02. New findings or new projects need the same confirmation before they
+ship; the Lab's credibility rests on the claims being right, not on them sounding
+right.
 
 Lab stages use the site's lifecycle vocabulary — Extract, Land, Model, Build —
 rather than a second set of names for the same process. **Ask is a capability
