@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Budget Against Actual — Canyonland Technologies</title>
+  <meta name="description" content="Project 3: two City of Chicago datasets that should reconcile and do not. A raw join matches zero rows; one stated rule takes it to 92%. What the remaining gap is, and what it is not." />
+  <link rel="canonical" href="https://www.canyonlandtech.com/lab/budget-actual.html" />
+  <meta name="theme-color" content="#14181d" />
+
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="Canyonland Technologies Inc." />
+  <meta property="og:url" content="https://www.canyonlandtech.com/lab/budget-actual.html" />
+  <meta property="og:title" content="Budget Against Actual — Canyonland Technologies" />
+  <meta property="og:description" content="Project 3: two City of Chicago datasets that should reconcile and do not. A raw join matches zero rows; one stated rule takes it to 92%. What the remaining gap is, and what it is not." />
+  <meta property="og:image" content="https://www.canyonlandtech.com/assets/og-image.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="Canyonland Technologies Inc." />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Budget Against Actual — Canyonland Technologies" />
+  <meta name="twitter:description" content="Project 3: two City of Chicago datasets that should reconcile and do not. A raw join matches zero rows; one stated rule takes it to 92%. What the remaining gap is, and what it is not." />
+  <meta name="twitter:image" content="https://www.canyonlandtech.com/assets/og-image.png" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap"
+    rel="stylesheet">
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="48x48" href="/assets/favicon-48.png">
+  <link rel="icon" type="image/png" sizes="96x96" href="/assets/favicon-96.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon-192.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png">
+
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="stylesheet" href="/lab/lab.css" />
+</head>
+
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+
+  <header class="masthead">
+    <div class="wrap">
+      <a class="mark" href="/" aria-label="Canyonland Technologies Inc. — home">
+        <img src="/assets/logo-400.png" width="400" height="180" alt="Canyonland Technologies Inc.">
+      </a>
+      <nav class="menu" id="menu" aria-label="Primary">
+        <a href="/#lifecycle">Lifecycle</a>
+        <a href="/portfolio.html">Portfolio</a>
+        <a href="/notes.html">Notes</a>
+        <a href="/lab/" aria-current="page">Lab</a>
+        <a href="/#focus">Focus</a>
+        <a href="/#about">About</a>
+        <a href="/#contact" class="cta-link">Contact</a>
+      </nav>
+      <button class="menu-btn" aria-label="Open menu" aria-expanded="false" aria-controls="menu">☰</button>
+    </div>
+  </header>
+
+  <main id="main">
+
+    <section class="hero" id="top">
+      <div class="wrap">
+        <p class="eyebrow">Project 3 · Budget against actual</p>
+        <h1>Two systems that describe the same thing and disagree.</h1>
+        <p class="standfirst">Projects 1 and 2 each read a single source. Most real work is not that. It is a
+          budget and a payroll that ought to reconcile, share no usable key, count in different units, and
+          measure populations that are not the same — where the job is not to produce a number but to work out
+          which number the question actually wants.</p>
+
+        <div id="ba-summary" class="lab-summary" aria-live="polite">
+          <div class="lab-summary-strip">
+            <div class="lab-summary-item"><span class="lab-summary-value">—</span><span class="lab-summary-label">Loading</span></div>
+          </div>
+        </div>
+
+        <p class="lab-disclosure">Runs entirely in your browser against a cached snapshot of two City of Chicago
+          datasets. Nothing is uploaded, nothing is stored, and no language model is involved — every figure
+          below is computed from the data each time the page loads.</p>
+      </div>
+    </section>
+
+    <nav class="lab-nav" aria-label="Lab stages">
+      <div class="wrap">
+        <ol>
+          <li><a href="#provenance"><span class="lab-nav-no">Source</span> Provenance</a></li>
+          <li><a href="#stage-1"><span class="lab-nav-no">01</span> Extract</a></li>
+          <li><a href="#stage-2"><span class="lab-nav-no">02</span> Land</a></li>
+          <li><a href="#stage-3"><span class="lab-nav-no">03</span> Model</a></li>
+          <li><a href="#stage-4"><span class="lab-nav-no">04</span> Build</a></li>
+          <li><a href="#stage-ask"><span class="lab-nav-no">Ask</span> Questions</a></li>
+        </ol>
+      </div>
+    </nav>
+
+    <section class="band band--tint">
+      <div class="wrap">
+        <p id="ba-status" class="lab-status">Loading the snapshot…</p>
+      </div>
+    </section>
+
+    <section class="band" id="provenance">
+      <div class="wrap">
+        <p class="eyebrow">Source · before anything else</p>
+        <h2>Two datasets, one publisher, no shared key.</h2>
+        <p class="lab-lede">Both are published by the City of Chicago. Neither was built to be joined to the
+          other, which is the ordinary situation and the reason this stage exists.</p>
+        <div id="ba-provenance" class="lab-stage"><p class="lab-note">Loading…</p></div>
+      </div>
+    </section>
+
+    <section class="band band--tint" id="stage-1">
+      <div class="wrap">
+        <p class="eyebrow">Stage 01 · Extract</p>
+        <h2>What each side actually contains.</h2>
+        <p class="lab-lede">The budget describes funded positions. The payroll describes money that moved. Those
+          are different things, and most of the difficulty downstream comes from that sentence being easy to
+          skip past.</p>
+        <div id="ba-extract" class="lab-stage"><p class="lab-note">Loading…</p></div>
+      </div>
+    </section>
+
+    <section class="band" id="stage-2">
+      <div class="wrap">
+        <p class="eyebrow">Stage 02 · Land</p>
+        <h2>The join returns nothing, and says so quietly.</h2>
+        <p class="lab-lede">This is the failure worth seeing. An inner join on the obvious keys matches zero
+          rows — and produces an empty chart rather than an error, which is how it survives review.</p>
+        <div id="ba-land" class="lab-stage"><p class="lab-note">Loading…</p></div>
+      </div>
+    </section>
+
+    <section class="band band--tint" id="stage-3">
+      <div class="wrap">
+        <p class="eyebrow">Stage 03 · Model</p>
+        <h2>Deciding what a position is, and what headcount means.</h2>
+        <p class="lab-lede">Two definitions have to be pinned down before any comparison is meaningful, and
+          neither is given by the data. Both are stated here and used consistently below.</p>
+        <div id="ba-model" class="lab-stage"><p class="lab-note">Loading…</p></div>
+      </div>
+    </section>
+
+    <section class="band" id="stage-4">
+      <div class="wrap">
+        <p class="eyebrow">Stage 04 · Build</p>
+        <h2>Budget beside actual, department by department.</h2>
+        <p class="lab-lede">With the join made and the units settled, the comparison is finally possible — and
+          the most important column is the one saying how much of each department the comparison covers.</p>
+        <div id="ba-build" class="lab-stage"><p class="lab-note">Loading…</p></div>
+      </div>
+    </section>
+
+    <section class="band band--tint" id="stage-ask">
+      <div class="wrap">
+        <p class="eyebrow">Ask · across every stage</p>
+        <h2>Including one we decline to answer.</h2>
+        <p class="lab-lede">The question this data is most often asked is the one it cannot support. Saying so
+          is more useful than a number that would be quoted in a budget hearing.</p>
+        <div id="ba-ask" class="lab-stage"><p class="lab-note">Loading…</p></div>
+      </div>
+    </section>
+
+    <section class="band" id="more">
+      <div class="wrap">
+        <p class="eyebrow">If this is your problem</p>
+        <h2>Two systems, one number, and a meeting on Thursday.</h2>
+        <p class="lab-lede">Every organisation has a pair of systems that disagree and a report that has to
+          reconcile them anyway. The work is rarely the join. It is knowing which of the two is answering the
+          question you were actually asked, and being able to show why.</p>
+        <p><a href="/#contact">Tell us what's stuck</a> — the first consultation is free, or
+          <a href="https://calendly.com/ceo-canyonlandtech" target="_blank" rel="noopener">book a time directly</a>.</p>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="foot">
+    <div class="wrap">
+      <div>
+        <img src="/assets/logo-320.png" width="320" height="144" alt="Canyonland Technologies Inc.">
+        <p>© <span id="year"></span> Canyonland Technologies Inc.</p>
+      </div>
+      <nav aria-label="Footer">
+        <a href="/#lifecycle">Lifecycle</a>
+        <a href="/portfolio.html">Portfolio</a>
+        <a href="/notes.html">Notes</a>
+        <a href="/lab/">Lab</a>
+        <a href="/#about">About</a>
+        <a href="/#contact">Contact</a>
+      </nav>
+    </div>
+  </footer>
+
+  <script src="/script.js"></script>
+  <script src="/lab/budget.js"></script>
+</body>
+
+</html>
