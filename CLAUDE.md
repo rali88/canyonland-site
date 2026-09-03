@@ -4,8 +4,8 @@ Static marketing site. Plain HTML/CSS/JS, no build step, deployed on Netlify
 from `main`. **Pushing to `main` publishes immediately.**
 
 ```
-index.html  portfolio.html  styles.css  script.js
-success.html  404.html
+index.html  portfolio.html  notes.html  notes/
+styles.css  script.js  success.html  404.html
 netlify.toml  robots.txt  sitemap.xml  assets/
 ```
 
@@ -54,6 +54,21 @@ while the repo was private — the same failure as the unverifiable statistics
 below. `estatemap` is now public at <https://github.com/rali88/estatemap>, so
 the page says so; if a future tool is not published, describe it as in-house and
 drop every claim about reading or running it.
+
+## Notes
+
+`notes.html` indexes the explainers under `notes/`. They are **undated by
+design** — a dated post that is two years old advertises neglect, and these are
+evergreen. Do not add dates or a "published" line.
+
+They exist to bring in search traffic and to give a prospect something to judge
+before making contact, so each ends with the same call to action and the free
+first consultation.
+
+They make technical claims about mainframe practice — encodings, record formats,
+report-writer semantics. **Those claims are the author's to verify**, not
+something to extend from general knowledge. Adding a new note means adding
+something you know first-hand.
 
 ## Design system — technical editorial
 

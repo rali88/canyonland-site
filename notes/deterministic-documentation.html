@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>What determinism buys you in legacy documentation — Canyonland Technologies</title>
+  <meta name="description" content="Documentation that is ninety-five per cent right can be worse than none, because the reader cannot tell which five per cent to distrust." />
+  <link rel="canonical" href="https://www.canyonlandtech.com/notes/deterministic-documentation.html" />
+  <meta name="theme-color" content="#14181d" />
+
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="Canyonland Technologies Inc." />
+  <meta property="og:url" content="https://www.canyonlandtech.com/notes/deterministic-documentation.html" />
+  <meta property="og:title" content="What determinism buys you in legacy documentation — Canyonland Technologies" />
+  <meta property="og:description" content="Documentation that is ninety-five per cent right can be worse than none, because the reader cannot tell which five per cent to distrust." />
+  <meta property="og:image" content="https://www.canyonlandtech.com/assets/og-image.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="Canyonland Technologies Inc." />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="What determinism buys you in legacy documentation — Canyonland Technologies" />
+  <meta name="twitter:description" content="Documentation that is ninety-five per cent right can be worse than none, because the reader cannot tell which five per cent to distrust." />
+  <meta name="twitter:image" content="https://www.canyonlandtech.com/assets/og-image.png" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap"
+    rel="stylesheet">
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="48x48" href="/assets/favicon-48.png">
+  <link rel="icon" type="image/png" sizes="96x96" href="/assets/favicon-96.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon-192.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png">
+
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+
+  <header class="masthead">
+    <div class="wrap">
+      <a class="mark" href="/" aria-label="Canyonland Technologies Inc. — home">
+        <img src="/assets/logo-400.png" width="400" height="180" alt="Canyonland Technologies Inc.">
+      </a>
+      <nav class="menu" id="menu" aria-label="Primary">
+        <a href="/#lifecycle">Lifecycle</a>
+        <a href="/portfolio.html">Portfolio</a>
+        <a href="/notes.html" aria-current="page">Notes</a>
+        <a href="/#focus">Focus</a>
+        <a href="/#about">About</a>
+        <a href="/#contact" class="cta-link">Contact</a>
+      </nav>
+      <button class="menu-btn" aria-label="Open menu" aria-expanded="false" aria-controls="menu">☰</button>
+    </div>
+  </header>
+
+  <main id="main">
+
+    <section class="hero" id="top">
+      <div class="wrap">
+        <p class="eyebrow">Note · Enable</p>
+        <h1>What determinism buys you in legacy documentation.</h1>
+        <p class="standfirst">Generating documentation for an undocumented estate is an obvious use for a language
+          model, and mostly the wrong one. The reason is not accuracy in the abstract. It is what happens to the
+          reader who cannot tell which parts to check.</p>
+      </div>
+    </section>
+
+    <section class="band">
+      <div class="wrap prose">
+        <h2>The ninety-five per cent problem</h2>
+        <p>Suppose a tool documents a thousand programs and gets ninety-five per cent of the facts right. That sounds
+          good. Now consider the maintainer holding the output. They do not know which fifty programs are wrong, and
+          nothing in the document distinguishes a correct claim from a confident invention.</p>
+        <p>So they verify. And once they are verifying everything against the source, the documentation has saved them
+          nothing — it has added a step. Documentation that is mostly right is not most of the way to useful. For this
+          purpose it can be worse than none, because it invites a trust it has not earned.</p>
+
+        <h2>What "deterministic" means here</h2>
+        <p>That every fact in the output was read out of the source, and can be traced back to the line it was read
+          from. Not summarized, not inferred from naming conventions, not reconstructed from what similar programs
+          usually do. Read.</p>
+        <p>The practical test is provenance. If a document says a program writes to a dataset, it should be able to
+          say which line of which file says so. A fact with a <code>file:line</code> reference beside it can be
+          checked in seconds. A fact without one has to be re-derived from scratch.</p>
+
+        <h2>What can be extracted, and what cannot</h2>
+        <p>A surprising amount is mechanically derivable from COBOL and JCL:</p>
+        <ul>
+          <li>The program inventory, and which jobs and steps run each program</li>
+          <li>Files each program declares, how it opens them, and the I/O verbs it actually issues</li>
+          <li>What a DD name resolves to in each job — the same alias often points at different datasets</li>
+          <li>The call graph, including targets that are called but missing from the corpus</li>
+          <li>Record layouts to full depth, with picture clauses and usage</li>
+          <li>Paragraphs nothing performs, which is dead code or a fall-through worth knowing about</li>
+        </ul>
+        <p>What cannot be extracted is intent. No parser will tell you why a rule exists, which of two similar
+          programs is authoritative, or that a step survives only because of an incident in 2003. That knowledge lives
+          with people, and the case for doing the mechanical part quickly is that it leaves their limited time for the
+          part only they can supply.</p>
+
+        <h2>Gaps are output, not failure</h2>
+        <p>The instinct when a reference cannot be resolved is to fill it in with the most likely answer. That is
+          precisely the wrong move. A called program missing from the corpus, a DD name no job supplies, a copybook
+          nobody has — these are the most valuable lines in the document. They are the map of what the organization
+          has lost, and on an inherited estate that list is usually the first thing worth acting on.</p>
+
+        <h2>Where a model does help</h2>
+        <p>Not in extraction. But once the facts are established, a model is genuinely useful for turning them into
+          prose a maintainer will read, for proposing a plain-language name for <code>WS-CD-SW-01</code>, for drafting
+          the narrative that sits around a verified call graph. The distinction that matters is whether a statement is
+          <em>derived</em> or <em>suggested</em> — and whether the document makes that obvious to whoever is reading
+          it.</p>
+
+        <h2>How to judge a tool that claims this</h2>
+        <p>Three questions. Does every extracted fact carry a source reference you can follow? Are unresolved
+          references reported as gaps rather than filled in? And is the extraction checked against fixtures, so that a
+          change in the tool cannot silently change what it claims about your code?</p>
+        <p>Our own tool for this is public, so the answers are checkable rather than asserted — see
+          <a href="/portfolio.html#estatemap">estatemap</a>, including the demo that runs the same extraction rules in
+          your browser against source you paste in.</p>
+      </div>
+    </section>
+
+    <section class="band band--tint">
+      <div class="wrap">
+        <p class="eyebrow">If this is your problem</p>
+        <h2>Tell us what's stuck.</h2>
+        <p class="standfirst narrow">Describe what you are dealing with and we'll tell you honestly whether we're the
+          right people. The first consultation is free.</p>
+        <div class="hero-actions">
+          <a href="/#contact" class="btn">Start a conversation</a>
+          <a href="/notes.html" class="btn btn--quiet">More notes</a>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="foot">
+    <div class="wrap">
+      <div>
+        <img src="/assets/logo-320.png" width="320" height="144" alt="Canyonland Technologies Inc.">
+        <p>© <span id="year"></span> Canyonland Technologies Inc.</p>
+      </div>
+      <nav aria-label="Footer">
+        <a href="/#lifecycle">Lifecycle</a>
+        <a href="/portfolio.html">Portfolio</a>
+        <a href="/notes.html">Notes</a>
+        <a href="/#about">About</a>
+        <a href="/#contact">Contact</a>
+      </nav>
+    </div>
+  </footer>
+
+  <script src="/script.js"></script>
+</body>
+
+</html>

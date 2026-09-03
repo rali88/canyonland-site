@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>What a mainframe data extract actually involves — Canyonland Technologies</title>
+  <meta name="description" content="EBCDIC, packed decimal, copybooks, REDEFINES and reconciliation: what stands between “just send us a CSV” and a file your warehouse can trust." />
+  <link rel="canonical" href="https://www.canyonlandtech.com/notes/mainframe-data-extract.html" />
+  <meta name="theme-color" content="#14181d" />
+
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="Canyonland Technologies Inc." />
+  <meta property="og:url" content="https://www.canyonlandtech.com/notes/mainframe-data-extract.html" />
+  <meta property="og:title" content="What a mainframe data extract actually involves — Canyonland Technologies" />
+  <meta property="og:description" content="EBCDIC, packed decimal, copybooks, REDEFINES and reconciliation: what stands between “just send us a CSV” and a file your warehouse can trust." />
+  <meta property="og:image" content="https://www.canyonlandtech.com/assets/og-image.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="Canyonland Technologies Inc." />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="What a mainframe data extract actually involves — Canyonland Technologies" />
+  <meta name="twitter:description" content="EBCDIC, packed decimal, copybooks, REDEFINES and reconciliation: what stands between “just send us a CSV” and a file your warehouse can trust." />
+  <meta name="twitter:image" content="https://www.canyonlandtech.com/assets/og-image.png" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap"
+    rel="stylesheet">
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="48x48" href="/assets/favicon-48.png">
+  <link rel="icon" type="image/png" sizes="96x96" href="/assets/favicon-96.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon-192.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png">
+
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+
+  <header class="masthead">
+    <div class="wrap">
+      <a class="mark" href="/" aria-label="Canyonland Technologies Inc. — home">
+        <img src="/assets/logo-400.png" width="400" height="180" alt="Canyonland Technologies Inc.">
+      </a>
+      <nav class="menu" id="menu" aria-label="Primary">
+        <a href="/#lifecycle">Lifecycle</a>
+        <a href="/portfolio.html">Portfolio</a>
+        <a href="/notes.html" aria-current="page">Notes</a>
+        <a href="/#focus">Focus</a>
+        <a href="/#about">About</a>
+        <a href="/#contact" class="cta-link">Contact</a>
+      </nav>
+      <button class="menu-btn" aria-label="Open menu" aria-expanded="false" aria-controls="menu">☰</button>
+    </div>
+  </header>
+
+  <main id="main">
+
+    <section class="hero" id="top">
+      <div class="wrap">
+        <p class="eyebrow">Note · Extract</p>
+        <h1>What a mainframe data extract actually involves.</h1>
+        <p class="standfirst">Every modernization project reaches a moment where someone asks "can you just send us a
+          CSV?" This is what stands between that question and a file your warehouse can trust.</p>
+      </div>
+    </section>
+
+    <section class="band">
+      <div class="wrap prose">
+        <h2>The file does not describe itself</h2>
+        <p>A relational table carries its own schema. A mainframe dataset does not. It is a stream of bytes whose
+          meaning lives somewhere else entirely — in a COBOL copybook, a member of a source library, describing where
+          each field starts, how long it is, and how it is encoded.</p>
+        <p>That separation is the first practical problem. The copybook may not be under the same change control as
+          the data. It may exist in three versions, one of which matches production. Different programs may read the
+          same file through different layouts. Until you have established which copybook actually describes the bytes
+          you were given, nothing downstream is trustworthy — and the file will not tell you when you are wrong. It
+          will just produce plausible numbers.</p>
+
+        <h2>The bytes are not what your tools expect</h2>
+        <p>Three encodings account for most of the surprises.</p>
+        <ul>
+          <li><strong>EBCDIC, not ASCII.</strong> Text arrives in an IBM code page — 037 in the US, others elsewhere.
+            Which one matters: code pages disagree about square brackets, the exclamation mark and currency symbols,
+            so a careless conversion corrupts exactly the punctuation that turns up in names and addresses.</li>
+          <li><strong>Packed decimal</strong> (<code>COMP-3</code>). Two digits per byte, with the sign in the final
+            half-byte. A <code>PIC S9(7)V99 COMP-3</code> field occupies five bytes, holds nine digits, and has an
+            implied decimal point that appears nowhere in the data. Read those bytes as text and you get nonsense;
+            read them as a number without knowing the implied scale and you are out by a factor of a hundred.</li>
+          <li><strong>Binary</strong> (<code>COMP</code>) and <strong>zoned decimal</strong>. Binary integers are
+            big-endian. Zoned decimal keeps one digit per byte but folds the sign into the last one, so a positive
+            value ending in 5 and a negative value ending in 5 differ by a single high-order nibble and render as two
+            unrelated characters.</li>
+        </ul>
+        <p>This is why the most common failure is not a crash but a silence. An FTP in text mode helpfully converts
+          EBCDIC to ASCII across the whole record — including the packed and binary fields, which are not text. The
+          transfer succeeds. The character fields look right. The money is quietly wrong. Binary transfer, then
+          copybook-driven decoding, is the only safe order of operations.</p>
+
+        <h2>One layout is often several</h2>
+        <p><code>REDEFINES</code> lets the same bytes mean different things depending on a value elsewhere in the
+          record — a claim whose tail is one shape for medical and another for dental. <code>OCCURS DEPENDING ON</code>
+          makes a record's length a function of its own contents. Neither is exotic; both are ordinary in estates
+          built when storage was expensive.</p>
+        <p>An extract that ignores them produces rows that are individually well-formed and collectively meaningless.
+          You cannot catch this by eyeballing the output, because the wrong interpretation still yields characters and
+          numbers.</p>
+
+        <h2>Records are not always the same length</h2>
+        <p>Variable-length datasets prefix each record with a four-byte descriptor word giving its length; blocked
+          datasets add another for the block. Strip them and the data shifts. Keep them without accounting for them
+          and every field is four bytes out. Fixed-length files avoid this and introduce their own quirk: trailing
+          spaces are real characters, not absent values.</p>
+        <p>Which raises the wider point — <strong>there is no NULL</strong>. Absence is conventional: spaces,
+          low-values, zeros, or a sentinel like all nines. Deciding what each field's absence marker is, field by
+          field, is part of the extract rather than something to sort out later in the warehouse.</p>
+
+        <h2>Dates deserve their own paragraph</h2>
+        <p>Expect two-digit years with a windowing rule that lives in code rather than data. Expect Julian dates —
+          <code>2026031</code> for the thirty-first day of 2026. Expect <code>99999999</code> used as "no expiry",
+          which becomes a spectacular outlier if loaded as a real date, and zeros used the same way at the other end.
+          None of this is discoverable from the bytes alone. All of it is knowable from the programs that write
+          them.</p>
+
+        <h2>Getting a copy that means anything</h2>
+        <p>A dataset read while the batch cycle is running is a photograph of a moving object. Extracts have to be
+          taken at a defined point in the schedule — usually after a named job step — and that point has to be
+          recorded, or two extracts taken an hour apart will disagree and nobody will be able to say which is
+          right.</p>
+
+        <h2>So what does "just send a CSV" cost?</h2>
+        <p>The request is not unreasonable. It is that producing the CSV is the <em>last</em> step, and every decision
+          above has to be made correctly first: the right copybook, binary transfer, per-field decoding, redefines
+          resolved, absence markers agreed, a defined point in the cycle. Skip them and you still get a CSV. You get
+          one that is subtly wrong in ways that surface months later, in a dashboard, in front of someone who now
+          does not trust the platform.</p>
+        <p>The finished job has one more part: <strong>reconciliation</strong>. Record counts and control totals taken
+          from the source and checked against the landed data, so that "does this match the mainframe?" has a number
+          for an answer rather than an opinion. That is the difference between an extract you can build on and a file
+          that happens to have parsed.</p>
+      </div>
+    </section>
+
+    <section class="band band--tint">
+      <div class="wrap">
+        <p class="eyebrow">If this is your problem</p>
+        <h2>Tell us what's stuck.</h2>
+        <p class="standfirst narrow">Describe what you are dealing with and we'll tell you honestly whether we're the
+          right people. The first consultation is free.</p>
+        <div class="hero-actions">
+          <a href="/#contact" class="btn">Start a conversation</a>
+          <a href="/notes.html" class="btn btn--quiet">More notes</a>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="foot">
+    <div class="wrap">
+      <div>
+        <img src="/assets/logo-320.png" width="320" height="144" alt="Canyonland Technologies Inc.">
+        <p>© <span id="year"></span> Canyonland Technologies Inc.</p>
+      </div>
+      <nav aria-label="Footer">
+        <a href="/#lifecycle">Lifecycle</a>
+        <a href="/portfolio.html">Portfolio</a>
+        <a href="/notes.html">Notes</a>
+        <a href="/#about">About</a>
+        <a href="/#contact">Contact</a>
+      </nav>
+    </div>
+  </footer>
+
+  <script src="/script.js"></script>
+</body>
+
+</html>
