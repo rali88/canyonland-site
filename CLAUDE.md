@@ -253,6 +253,12 @@ written as explicit steps rather than the fetcher's regular expression, and
 asserts the raw join still matches zero — the page's central example fails
 loudly if the City ever aligns the two code systems.
 
+Project 3's interpretive claims — fringe-benefit and adjustment-pool lines as
+non-positions rather than vacancies, 2080 hours as the FTE year, and refusing
+the vacancy-rate question rather than publishing it with caveats — were
+confirmed by Rehan on 2026-09-03, alongside Project 2's. The gate is unchanged
+for anything added since.
+
 The homepage Lab preview states four findings as static text. `verify_corpus.py`
 reads them out of `index.html` and fails if they stop matching the corpus, so
 regenerating the data cannot silently leave the marketing copy wrong. Run it
