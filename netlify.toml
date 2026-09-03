@@ -19,6 +19,9 @@
   from = "/lab/tools/*"
   to = "/404.html"
   status = 404
+  # Without force, an existing file wins over the rule and the source is served
+  # anyway — which is exactly what happened on the first deploy preview.
+  force = true
 
 # Asset filenames here are dimension-based (logo-400.png, favicon-32.png), not
 # content-hashed, so they are mutable: replacing a logo reuses its name. A
