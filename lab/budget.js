@@ -438,9 +438,13 @@
       strong(pct(part.numbers.naiveUnderspendPct)) + ' under budget.');
     paragraph(host, 'It is not. ' + strong(big(part.numbers.paid)) + ' of ' +
       strong(big(part.numbers.budget)) + ' is ' + strong(pct(part.numbers.burnPct)) +
-      ' of the budget spent against ' + strong(pct(part.numbers.elapsedPct)) +
-      ' of the year elapsed — slightly ahead of a flat run rate, which is a finding worth ' +
-      'having. The raw difference is not.');
+      ' of the budget paid against ' + strong(pct(part.numbers.elapsedPct)) +
+      ' of the year elapsed. That framing removes the elapsed-time error without making ' +
+      'the two sides like for like: the payroll includes overtime the position lines do ' +
+      'not fund, and the ordinance carries ' +
+      strong(big(part.numbers.nonPositionAmount)) + ' that never moves through payroll. ' +
+      'Against position lines alone it is ' +
+      strong(pct(part.numbers.burnPctPositionsOnly)) + '. A flag, not a verdict.');
     host.appendChild(bars([
       { label: 'Share of the year elapsed', value: part.numbers.elapsedPct,
         display: pct(part.numbers.elapsedPct) },
@@ -559,16 +563,23 @@
       {
         q: 'What is the City’s vacancy rate?',
         body: [
-          '<strong>This data cannot tell you.</strong> The subtraction is right there: ' +
+          '<strong>This data cannot tell you.</strong> The subtraction looks available: ' +
           strong(dec(b.fte, 0)) + ' budgeted FTE against ' + strong(count(a.pointInTime)) +
-          ' people paid in the latest period. It is not a vacancy rate, because the two ' +
-          'sides do not attribute people the same way.',
-          strong(count(j.centralPeople)) + ' people are paid under a department the ' +
-          'ordinance does not carry as an operating one — ' +
-          strong(niceName(j.centralDepartment)) + ', a central accounting code holding ' +
-          strong(pct(j.centralShareOfUnmatchedAmount)) + ' of the unmatched money. They ' +
-          'are funded; they are simply funded somewhere else. Subtracting one side from ' +
-          'the other counts them as missing.',
+          ' people paid in the latest period. Those are not the same kind of thing, ' +
+          'so the difference between them is not a vacancy.',
+          '<strong>A full-time equivalent measures work, not people.</strong> ' +
+          strong(count(vac.hourlyUnits)) + ' budgeted hours become ' +
+          strong(dec(vac.hourlyFte, 0)) + ' FTE under our own conversion, and those hours ' +
+          'may be worked by any number of individuals — part-year, seasonal, part-time. ' +
+          'Each is a whole person in the headcount and a fraction in the budget, so a ' +
+          'headcount exceeding an FTE total is arithmetic rather than a staffing finding.',
+          'Attribution is a second problem and a different one. It bites at department ' +
+          'level, where ' + strong(count(j.centralPeople)) + ' people across the year are ' +
+          'charged to ' + strong(niceName(j.centralDepartment)) + ' rather than the ' +
+          'department funding them. It does not rescue the city-wide subtraction: someone ' +
+          'booked centrally is still inside both city-wide totals, and in the latest ' +
+          'period ' + strong(count(j.centralPeoplePointInTime)) + ' people are booked ' +
+          'there at all.',
           'A real vacancy rate needs a position-level system showing filled and unfilled ' +
           'posts at a date. That is an internal system, not an open dataset. What this ' +
           'analysis produces instead is the specific question to take to whoever owns it, ' +
@@ -576,24 +587,32 @@
           strong(count(j.titleNeverBudgetedPeople)) + ' people — that genuinely have no ' +
           'funded title anywhere.'
         ],
-        fields: 'budget FTE vs point-in-time headcount · attribution differs'
+        fields: 'budget FTE vs point-in-time headcount · different units, different scope'
       },
       {
         q: 'Is the City on track against its budget?',
         body: [
-          'So far, marginally ahead of a flat run rate. ' + strong(pct(part.burnPct)) +
-          ' of the ' + r.focusYear + ' budget has been paid with ' +
-          strong(pct(part.elapsedPct)) + ' of the year elapsed — ' +
-          strong(big(part.paid)) + ' of ' + strong(big(part.budget)) + '.',
-          'Read as raw totals instead, the same numbers show a ' +
-          strong(pct(part.naiveUnderspendPct)) + ' underspend, which is not a finding ' +
-          'about spending at all. It is ' +
+          '<strong>Not from these two datasets — though it is answerable enough to be ' +
+          'dangerous.</strong> Read as raw totals, ' + strong(big(part.paid)) +
+          ' against ' + strong(big(part.budget)) + ' shows a ' +
+          strong(pct(part.naiveUnderspendPct)) + ' underspend. That is not a finding ' +
+          'about spending: it is ' +
           strong((part.periodsInYear - part.periodsElapsed) + ' pay periods') +
           ' that have not happened yet.',
-          hottest ? 'By department, ' + strong(niceName(hottest.name)) + ' has consumed ' +
-            'the largest share of its funded salary at ' + strong(pct(hottest.burnShare)) +
-            '. Overtime is inside that figure and is not inside the budget column, so a ' +
-            'department over the line is a question rather than a verdict.' : ''
+          'Expressing it against elapsed time removes that error and exposes another. ' +
+          strong(pct(part.burnPct)) + ' of the full ordinance has been paid against ' +
+          strong(pct(part.elapsedPct)) + ' of the year — but the numerator is payroll ' +
+          'cash including overtime, which the ordinance\u2019s position lines do not fund, ' +
+          'and the denominator carries ' + strong(big(part.nonPositionAmount)) + ' of ' +
+          'fringe and adjustment lines that never move through payroll at all. Against ' +
+          'position lines only the same figure is ' +
+          strong(pct(part.burnPctPositionsOnly)) + '.',
+          'Those two mismatches push in opposite directions and neither is quantified ' +
+          'here, so the honest output is a flag rather than a verdict. A real answer ' +
+          'needs the appropriation lines that fund overtime, which is a further dataset ' +
+          'again. ' + (hottest ? 'By department, ' + strong(niceName(hottest.name)) +
+            ' has consumed the largest share of its funded salary at ' +
+            strong(pct(hottest.burnShare)) + ', which is where to look first.' : '')
         ].filter(Boolean),
         fields: 'periods elapsed vs share of budget paid'
       },

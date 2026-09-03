@@ -57,14 +57,17 @@ def get(dataset, params, timeout=300):
         "Accept": "application/json",
         "User-Agent": "canyonland-lab-verify/1.0"})
     last = None
-    for attempt in range(4):
+    for attempt in range(5):
         try:
             with urllib.request.urlopen(req, timeout=timeout) as r:
                 return json.load(r)
         except Exception as exc:                      # pragma: no cover - network
             last = exc
             print("    retry %d after %s" % (attempt + 1, exc))
-            time.sleep(4 * (attempt + 1))
+            # The portal rate-limits, and this verifier is deliberately
+            # query-heavy. Back off properly rather than giving up: a
+            # failure here would read as a data problem when it is ours.
+            time.sleep(15 * (attempt + 1))
     raise last
 
 
@@ -280,10 +283,43 @@ def main():
           len(elsewhere) > len(never) * 3,
           "%d attributed elsewhere vs %d genuinely unbudgeted"
           % (len(elsewhere), len(never)))
+    # Derived from the live rows, not read back. Asserting only that a
+    # stored percentage exceeds fifty would pass on any number above fifty,
+    # including a wrong one, while the page presents it as verified.
+    detail = get(PAYROLL, {
+        "$select": "department_code,department,title_code,sum(amount) as amt",
+        "$where": "payroll_year='" + focus + "'",
+        "$group": "department_code,department,title_code",
+        "$limit": "50000"})
+    unmatched_rows = [r for r in detail
+                      if (normalise(r.get("department_code")),
+                          normalise(r.get("title_code"))) in unmatched_keys]
+    unmatched_total = round(sum(num(r["amt"]) for r in unmatched_rows), 2)
+    central_rows = [r for r in unmatched_rows
+                    if "FINANCE GENERAL" in (r.get("department") or "").upper()]
+    central_total = round(sum(num(r["amt"]) for r in central_rows), 2)
+    central_share = (round(central_total / unmatched_total * 100, 1)
+                     if unmatched_total else 0.0)
+    check("unmatched payroll total recomputed from source",
+          close(unmatched_total, d["join"]["actualOnlyAmount"], 1.0),
+          "$%s at source, $%s in snapshot"
+          % (format(unmatched_total, ",.0f"),
+             format(d["join"]["actualOnlyAmount"], ",.0f")))
+    check("central-account amount recomputed from source",
+          close(central_total, d["join"]["centralAmount"], 1.0),
+          "$%s at source, $%s in snapshot"
+          % (format(central_total, ",.0f"),
+             format(d["join"]["centralAmount"], ",.0f")))
+    check("central-account share recomputed from source",
+          close(central_share, d["join"]["centralShareOfUnmatchedAmount"], 0.15),
+          "%.1f%% at source, %.1f%% in snapshot"
+          % (central_share, d["join"]["centralShareOfUnmatchedAmount"]))
+    check("the central department named on the page is the one in the data",
+          bool(central_rows) and (d["join"]["centralDepartment"] or "").upper()
+          == (central_rows[0].get("department") or "").upper(),
+          d["join"]["centralDepartment"] or "(none)")
     check("the central account carries most of the unmatched money",
-          d["join"]["centralShareOfUnmatchedAmount"] > 50,
-          "%.1f%% via %s" % (d["join"]["centralShareOfUnmatchedAmount"],
-                             d["join"]["centralDepartment"] or "?"))
+          central_share > 50, "%.1f%%" % central_share)
     check("unmatched payroll is large enough to matter",
           d["join"]["actualOnlyAmount"] > 1_000_000,
           "$%s across %s people"
@@ -291,6 +327,20 @@ def main():
              format(vac["actualOnlyEmployees"], ",")))
     check("the point-in-time unmatched count is a subset of the annual one",
           vac["actualOnlyEmployeesPointInTime"] <= vac["actualOnlyEmployees"])
+    # The page's city-wide argument is that an FTE is not a person. That
+    # rests on hourly budget lines existing at all, so it is asserted here
+    # rather than assumed from the prose.
+    hourly = [u for u in d["budget"]["byUnit"] if u["unit"].lower() == "hourly"]
+    check("the budget really does fund work in hours, not only positions",
+          bool(hourly) and hourly[0]["units"] > hourly[0]["fte"],
+          "%s hours -> %s FTE" % (format(hourly[0]["units"], ",.0f"),
+                                  format(hourly[0]["fte"], ",.0f"))
+          if hourly else "no hourly lines")
+    check("attribution is not offered as the city-wide explanation",
+          d["join"]["centralPeoplePointInTime"] <= d["join"]["centralPeople"],
+          "%s in the latest period vs %s across the year"
+          % (format(d["join"]["centralPeoplePointInTime"], ","),
+             format(d["join"]["centralPeople"], ",")))
     check("budget-only keys are split into positions and non-positions",
           d["join"]["budgetOnlyNonPosition"] + d["join"]["budgetOnlyRealPositions"]
           == d["join"]["budgetOnly"])

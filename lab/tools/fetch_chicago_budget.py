@@ -333,6 +333,11 @@ def main():
     unmatched_people = people_on(grid, set(actual_only))
     unmatched_people_pit = people_on(grid_pit, set(actual_only))
     central_people = people_on(grid, set(central))
+    # Attribution is a department-level effect. A person booked centrally is
+    # still inside the city-wide headcount, so the city-wide subtraction is not
+    # explained by it -- and quoting an annual attribution count beside a
+    # point-in-time headcount compares two different populations as well.
+    central_people_pit = people_on(grid_pit, set(central))
     never_people = people_on(grid, set(title_never))
 
     join = {
@@ -356,6 +361,7 @@ def main():
         "titleNeverBudgetedPeople": len(never_people),
         "centralKeys": len(central),
         "centralPeople": len(central_people),
+        "centralPeoplePointInTime": len(central_people_pit),
         "centralAmount": central_amount,
         "centralShareOfUnmatchedAmount": (round(central_amount / unmatched_amount * 100, 1)
                                           if unmatched_amount else 0.0),
@@ -492,10 +498,17 @@ def main():
                         "budget": budget["amount"],
                         "paid": actual_amount,
                         "burnPct": burn_share,
+                        "burnPctPositionsOnly": round(
+                            actual_amount / budget["positionAmount"] * 100, 1)
+                        if budget["positionAmount"] else None,
+                        "positionAmount": budget["positionAmount"],
+                        "nonPositionAmount": budget["nonPositionAmount"],
                         "naiveUnderspendPct": round(100 - burn_share, 1),
                         "complete": year_complete},
             "check": "Count distinct payroll_period in the focus year before "
-                     "comparing any total against a full-year budget.",
+                     "comparing any total against a full-year budget. Then check "
+                     "whether the two sides cover the same costs before reading "
+                     "the result as progress.",
         },
         {
             "id": "headcount-is-a-choice",
@@ -527,12 +540,19 @@ def main():
                         "titleNeverBudgeted": len(title_never),
                         "titleNeverBudgetedPeople": len(never_people),
                         "centralPeople": len(central_people),
+                        "centralPeoplePointInTime": len(central_people_pit),
                         "centralAmount": central_amount,
+                        "hourlyUnits": next((e["units"] for e in budget["byUnit"]
+                                             if e["unit"].lower() == "hourly"), 0),
+                        "hourlyFte": next((e["fte"] for e in budget["byUnit"]
+                                           if e["unit"].lower() == "hourly"), 0),
                         "centralShare": join["centralShareOfUnmatchedAmount"],
                         "centralDepartment": join["centralDepartment"]},
             "check": "For each unmatched department-title pair, check whether the "
                      "title is funded under a different department before calling "
-                     "anyone unbudgeted.",
+                     "anyone unbudgeted. Separately: a budgeted FTE is a workload "
+                     "measure, not a person, so it cannot be subtracted from a "
+                     "headcount at any level.",
         },
     ]
 
