@@ -12,6 +12,35 @@
   status = 301
   force = true
 
+# Netlify also serves the site on its own subdomains. Those hosts are real,
+# public and indexable, and they duplicate every page at a non-canonical
+# address. The <link rel="canonical"> tags already point search engines at the
+# right domain; these send the visitor there too, so there is one address for
+# the site rather than three.
+#
+# The production deploy is NOT deleted to achieve this. That deploy is what
+# serves www.canyonlandtech.com, and main--canyonlandtech.netlify.app is an
+# alias of it, not a separate build — both return the same ETag. Removing it
+# would take the site down.
+#
+# Both hosts are named explicitly rather than matched with a *.netlify.app
+# wildcard, because such a wildcard would also catch
+# deploy-preview-<n>--canyonlandtech.netlify.app and redirect every pull
+# request's preview to production. Reviewing on the deploy preview is the last
+# checkpoint before going live; a rule that quietly disables it would cost far
+# more than the duplicate hostname it fixes.
+[[redirects]]
+  from = "https://main--canyonlandtech.netlify.app/*"
+  to = "https://www.canyonlandtech.com/:splat"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "https://canyonlandtech.netlify.app/*"
+  to = "https://www.canyonlandtech.com/:splat"
+  status = 301
+  force = true
+
 # The Lab's corpus generator and its verifier live in the repo so the synthetic
 # data is reproducible, but they are authoring tools, not part of the site.
 # Serve the 404 page rather than the Python source.
