@@ -45,6 +45,17 @@ OT_STRICT_EXPECTED = {
 OT_NAMED_EXTRA_EXPECTED = {
     "SUPERVISORS QUARTERLY OT", "DEC SPRVSR QRT OT", "DEC OT FLSA",
 }
+# The broad rule carries the headline swing, so its membership is written out
+# here too. Checking only strict and named left the largest advertised figure
+# resting on the fetcher's regular expression alone.
+OT_PREMIUM_EXPECTED = {
+    "HOLIDAY PREMIUM", "HOLIDAY PREMIUM 2_0", "HOLIDAY PREMIUM 2_5",
+    "DRIVER DIFF 1_5", "DRIVER DIFF 2_0",
+    "ACT UP 1 RATE 1_5", "ACT UP 1 RATE 2_0", "ACT UP 1 RATE 2_5",
+} | {
+    "MULT %d RATE %s" % (n, r)
+    for n in range(1, 9) for r in ("1_5", "2_0", "2_5")
+}
 
 # What each page is required to state as static text. Anything a page shows
 # from this dataset without recomputing it belongs here, or it can drift.
@@ -167,8 +178,17 @@ def main():
           not (set(d["rules"]["otPremium"]) & set(d["rules"]["otNamed"])))
 
     print("\nOvertime totals, re-queried per rule")
-    for rule, elements in (("strict", sorted(OT_STRICT_EXPECTED)),
-                           ("named", sorted(OT_STRICT_EXPECTED | OT_NAMED_EXTRA_EXPECTED))):
+    check("premium rule matches the hand-written list",
+          set(d["rules"]["otPremium"]) == OT_PREMIUM_EXPECTED,
+          "unexpected: %s; missing: %s" % (
+              sorted(set(d["rules"]["otPremium"]) - OT_PREMIUM_EXPECTED),
+              sorted(OT_PREMIUM_EXPECTED - set(d["rules"]["otPremium"]))))
+
+    for rule, elements in (
+            ("strict", sorted(OT_STRICT_EXPECTED)),
+            ("named", sorted(OT_STRICT_EXPECTED | OT_NAMED_EXTRA_EXPECTED)),
+            ("broad", sorted(OT_STRICT_EXPECTED | OT_NAMED_EXTRA_EXPECTED
+                             | OT_PREMIUM_EXPECTED))):
         quoted = ",".join("'" + e + "'" for e in elements)
         r = get({"$select": "sum(amount) as amt",
                  "$where": "pay_element IN(" + quoted + ")"})
@@ -181,6 +201,7 @@ def main():
     print("\nThe findings this page makes")
     ids = [f["id"] for f in d["findings"]]
     check("all four findings are present", len(ids) == 4, str(ids))
+    pyr = [f for f in d["findings"] if f["id"] == "part-year-records"]
 
     neg = get({"$select": "pay_element,sum(amount) as amt,count(record_id) as n",
                "$group": "pay_element", "$having": "sum(amount) < 0",
@@ -192,7 +213,6 @@ def main():
           close(sum(money(r["amt"]) for r in neg),
                 sum(n["amount"] for n in d["land"]["negatives"]), 1.0))
 
-    pyr = [f for f in d["findings"] if f["id"] == "part-year-records"]
     if pyr:
         n = pyr[0]["numbers"]
         check("the part-year correction actually shrinks the spread",
@@ -202,6 +222,50 @@ def main():
               n["fullP10"] > 20000, "$%.0f" % n["fullP10"])
         check("the naive 10th percentile is implausible, which is the point",
               n["naiveP10"] < 20000, "$%.0f" % n["naiveP10"])
+
+    # ---- the headline pay gap, recomputed from the source -----------------
+    #
+    # Every other check on this finding tested inequalities between two numbers
+    # that both came out of the snapshot, so a wrong-but-plausible percentile
+    # would have passed while the homepage advertised it. This re-derives the
+    # ratio from the City's rows.
+    print("\nThe headline pay gap, recomputed from the City's rows")
+    if pyr:
+        n = pyr[0]["numbers"]
+        title = n["title"]
+        rows = get({"$select": "employee_dataset_id,sum(amount) as amt,"
+                               "count(distinct payroll_period) as periods",
+                    "$where": "payroll_year='" + focus + "' AND title='"
+                              + title.replace("'", "''") + "'",
+                    "$group": "employee_dataset_id", "$limit": "50000"})
+
+        def percentile(vals, q):
+            if not vals:
+                return 0.0
+            v = sorted(vals)
+            return round(v[min(len(v) - 1, int(q * len(v)))], 2)
+
+        every = [money(r["amt"]) for r in rows]
+        full = [money(r["amt"]) for r in rows
+                if int(float(r["periods"])) >= n["minPeriods"]]
+        naive_ratio = round(percentile(every, 0.90) / percentile(every, 0.10), 2)
+        full_ratio = round(percentile(full, 0.90) / percentile(full, 0.10), 2)
+        check("naive spread for " + title + " recomputed from source",
+              close(naive_ratio, n["naiveRatio"], 0.02),
+              "source x%s vs snapshot x%s" % (naive_ratio, n["naiveRatio"]))
+        check("full-year spread for " + title + " recomputed from source",
+              close(full_ratio, n["fullRatio"], 0.02),
+              "source x%s vs snapshot x%s" % (full_ratio, n["fullRatio"]))
+        check("naive 10th percentile recomputed from source",
+              close(percentile(every, 0.10), n["naiveP10"], 0.02),
+              "source $%.2f" % percentile(every, 0.10))
+        check("full-year 10th percentile recomputed from source",
+              close(percentile(full, 0.10), n["fullP10"], 0.02),
+              "source $%.2f" % percentile(full, 0.10))
+        check("the full-year cohort is a real subset, not everyone",
+              0 < len(full) < len(every),
+              "%d of %d employees held the title for >= %d periods"
+              % (len(full), len(every), n["minPeriods"]))
 
     # ---- concentration, recomputed from the source ------------------------
     print("\nOvertime concentration, recomputed for " + focus)

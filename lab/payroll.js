@@ -137,7 +137,28 @@
     return p;
   }
 
-  function strong(v) { return '<strong>' + v + '</strong>'; }
+  // Values reaching innerHTML come from a City-published snapshot, not from us.
+  // Today none of them contain markup; a rebuild is not a promise that none ever
+  // will, and an unescaped department name would execute under this origin.
+  function esc(v) {
+    return String(v).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;',
+               "'": '&#39;' }[c];
+    });
+  }
+
+  function strong(v) { return '<strong>' + esc(v) + '</strong>'; }
+
+  // 6 of 24 is a quarter, not a fifth. Naming the fraction in prose while the
+  // table beneath states the ratio is how a page contradicts itself, so the
+  // word is derived from the numbers rather than typed.
+  function fractionWord(part, whole) {
+    var names = { 2: 'half', 3: 'a third', 4: 'a quarter', 5: 'a fifth',
+                  6: 'a sixth', 8: 'an eighth', 12: 'a twelfth' };
+    var inv = Math.round(whole / part);
+    if (names[inv] && Math.abs(part / whole - 1 / inv) < 0.005) return names[inv];
+    return part + ' of ' + whole;
+  }
 
   // ------------------------------------------------------------- self-check
 
@@ -335,7 +356,8 @@
 
     var pf = model.findings.filter(function (f) { return f.id === 'partial-year'; })[0];
     if (pf) {
-      host.appendChild(el('h3', null, 'Finding: the newest year is a fifth of a year'));
+      host.appendChild(el('h3', null, 'Finding: the newest year is ' +
+        fractionWord(pf.numbers.periods, pf.numbers.of) + ' of a year'));
       paragraph(host, 'Payroll year ' + strong(pf.numbers.year) + ' holds only ' +
         strong(pf.numbers.periods + ' of ' + pf.numbers.of) + ' pay periods. Charted ' +
         'beside the complete years it shows ' + strong(big(pf.numbers.reported)) +
@@ -495,8 +517,9 @@
       })));
     var collapse = el('p', 'lab-note');
     collapse.innerHTML = 'Every one of these collapses. ' +
-      strong(f.numbers.unreportable) + ' further classifications — ' +
-      niceName(f.numbers.unreportableExample) + ' among them — have too few ' +
+      strong(f.numbers.unreportable) + ' of the ' + strong(f.numbers.naiveTitles) +
+      ' classifications the naive method would have reported — ' +
+      esc(niceName(f.numbers.unreportableExample)) + ' among them — have too few ' +
       'full-year holders to report a spread at all, which is itself the answer: the ' +
       'naive chart was not measuring pay, it was measuring turnover.';
     host.appendChild(collapse);

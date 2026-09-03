@@ -378,7 +378,16 @@ def main():
     # actually be compared against. Titles whose full-year cohort is too
     # small to report are a finding in their own right, not a headline.
     worst = next((c for c in correction if c["fullYear"]), None)
-    unreportable = [c["title"] for c in correction if not c["fullYear"]]
+    # Counted across every classification the naive method would have reported,
+    # not merely the eight shown. The page states this as a snapshot-wide
+    # figure, so deriving it from the presentation list would understate it.
+    naive_titles = set(t["title"] for t in naive)
+    full_titles = set(t["title"] for t in full)
+    unreportable = sorted(naive_titles - full_titles)
+    unreportable_example = next(
+        (t["title"] for t in sorted([x for x in naive if x["ratio"]],
+                                    key=lambda x: -x["ratio"])
+         if t["title"] in naive_titles - full_titles), None)
 
     findings = []
     if partial:
@@ -386,7 +395,7 @@ def main():
         run_rate = round(pa["amount"] / pa["periods"] * periods_in_year, 2)
         findings.append({
             "id": "partial-year",
-            "title": "The most recent year is a fifth of a year",
+            "title": "The most recent payroll year is incomplete",
             "numbers": {"year": pa["year"], "periods": pa["periods"],
                         "of": periods_in_year, "reported": pa["amount"],
                         "runRate": run_rate,
@@ -428,7 +437,9 @@ def main():
                         "fullN": worst["fullYear"]["employees"],
                         "minPeriods": FULL_YEAR_MIN, "of": periods_in_year,
                         "unreportable": len(unreportable),
-                        "unreportableExample": unreportable[0] if unreportable else None},
+                        "unreportableExample": unreportable_example,
+                        "naiveTitles": len(naive_titles),
+                        "fullTitles": len(full_titles)},
             "check": ("Count distinct payroll_period per employee per title, "
                       "then re-rank using only the full-year cohort."),
         })
