@@ -183,7 +183,13 @@ Where a number would help but isn't verified, write the qualitative version.
   panel, prose and booking styles; `/lab/` is exempt and carries its own
   budget. If `styles.css` keeps growing, split it per page rather than letting
   every page pay for every feature.
-- Anchor targets rely on `scroll-margin-top` to clear the sticky header.
+- Anchor targets rely on `scroll-margin-top` to clear the sticky header, and it
+  derives from `--header-h` rather than a hardcoded number. The masthead is a
+  fixed 87px at every width because `.masthead .wrap` reserves the space and the
+  mark is capped to fit inside it. **Change the mark's size and you change the
+  masthead**, which is why enlarging it once pushed the Lab's stage navigator
+  underneath the header. Keep `--header-h` in step, and re-measure rather than
+  assuming.
 
 ## Before shipping
 

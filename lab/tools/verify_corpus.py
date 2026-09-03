@@ -157,7 +157,14 @@ def main() -> int:
     except Exception as exc:                       # pragma: no cover - I/O guard
         check("homepage preview strip is readable", False, str(exc))
 
-    if shown:
+    # An empty parse must fail, not skip. A markup change that removed the
+    # figures would otherwise leave this reporting "all checks passed" while
+    # checking nothing — precisely the silent-success failure the check exists
+    # to prevent.
+    check("homepage preview yields exactly four figures", len(shown) == 4,
+          f"parsed {len(shown)}")
+
+    if len(shown) == 4:
         want = [len(trans), len(excluded), len(orphan_dept), len(over)]
         labels = ["transactions", "exclusions", "broken joins", "contribution errors"]
         check("homepage figures match the corpus", shown == want,
