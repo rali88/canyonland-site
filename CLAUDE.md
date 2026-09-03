@@ -202,11 +202,15 @@ City data either keeps them true or fails the verifier. `lab/index.html` and
 attributes and the verifier checks each against the snapshot exactly, failing if
 one goes missing rather than skipping.
 
-**Project 2's domain claims have not been through the confirmation gate.** The
-interpretive ones — that `DOCK` and `SUSPENSION` are recoveries rather than
-errors, that extreme low annual totals are part-year employment, that this
-concentration counts as broad-based — are Rehan's to confirm, the same as the
-notes and Project 1. Arithmetic is verified; meaning is not.
+Project 2's interpretive claims — that `DOCK` and `SUSPENSION` are recoveries
+rather than errors, that extreme low annual totals are part-year employment, and
+that this concentration is fairly called broad-based — were confirmed by Rehan on
+2026-09-03. The arithmetic was already verified against the City's API; that
+confirmation covers the meaning, which the verifier cannot check.
+
+The gate still applies to anything added since. A new finding, a new focus year,
+or a second jurisdiction needs the same confirmation before it ships — and a
+claim that resembles a confirmed one is not covered by it.
 
 Anchor offsets on Lab pages apply to `section[id]` rather than a list of stage
 ids. The list version left `#more` landing 41px under the sticky navigator,
