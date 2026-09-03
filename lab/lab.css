@@ -167,9 +167,12 @@
 .lab-nav a:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
 .lab-nav-no{color:var(--ink-3);font-size:.66rem}
 
-/* Stage sections clear both the masthead and the stage navigator. */
-/* Stage sections clear the masthead and the stage navigator stacked. */
-#stage-1,#stage-2,#stage-3,#stage-4,#stage-ask{
+/* Every anchored section on a Lab page clears the masthead and the stage
+   navigator stacked. This is deliberately not a list of stage ids: the last
+   version enumerated them, and #more was left landing 41px underneath the
+   navigator because it was not on the list. lab.css loads only on Lab pages,
+   so the bare selector is already scoped to them. */
+section[id]{
   scroll-margin-top:calc(var(--header-h) + var(--labnav-h) + 12px);
 }
 
@@ -186,7 +189,36 @@
 @media (max-width:620px){
   .lab-nav{position:static}
   /* The navigator is not sticky at this width, so only the masthead matters. */
-  #stage-1,#stage-2,#stage-3,#stage-4,#stage-ask{
+  section[id]{
     scroll-margin-top:calc(var(--header-h) + 13px);
   }
 }
+
+/* ---------- Project switcher ----------
+   The Lab holds more than one project now. Same hairline-and-whitespace
+   structure as the rest of the system: no cards, no shadows, no radius. The
+   current project is marked by a heavier top rule rather than a fill, so the
+   accent stays reserved for findings. */
+.lab-alt{
+  margin-top:1.4rem;font-size:.92rem;color:var(--ink-2);max-width:var(--measure);
+}
+.lab-projects{
+  list-style:none;margin:clamp(26px,3vw,36px) 0 0;padding:0;
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:clamp(22px,3vw,40px);
+}
+.lab-project{border-top:1px solid var(--rule-strong);padding-top:1rem}
+.lab-project.is-current{border-top-width:3px}
+.lab-project-no{
+  font-family:var(--mono);font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--ink-3);margin:0 0 .5rem;
+}
+.lab-project h3{
+  font-size:1.12rem;font-weight:400;letter-spacing:-.01em;margin:0 0 .6rem;color:var(--ink);
+}
+.lab-project p{font-size:.92rem;color:var(--ink-2);margin:0 0 .6rem}
+.lab-project-meta{
+  font-family:var(--mono);font-size:.68rem;letter-spacing:.06em;
+  color:var(--ink-3);margin:.8rem 0 0;
+}
+

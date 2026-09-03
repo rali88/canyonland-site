@@ -161,6 +161,57 @@ Lab stages use the site's lifecycle vocabulary — Extract, Land, Model, Build �
 rather than a second set of names for the same process. **Ask is a capability
 shown across those four, not a fifth stage**, so it carries no stage number.
 
+## Lab Project 2 — public workforce intelligence
+
+`/lab/public-payroll.html` runs the same four stages over **real published
+data**: the City of Chicago's payroll costing dataset (`dawh-m56b`), 4.86m rows
+at employee-pay-element-per-period grain. It exists because Project 1 cannot be
+checked — a corpus we wrote ourselves proves method, not accuracy. This one a
+visitor can re-issue against the City's API and disagree with.
+
+```
+py lab/tools/fetch_chicago_payroll.py    # rebuild the snapshot (network)
+py lab/tools/verify_chicago_payroll.py   # independent re-query (network)
+```
+
+The fetcher caches responses under `lab/tools/.cache/` (git-excluded); delete it
+to force a refetch. The verifier shares no code with the fetcher and classifies
+pay elements from a hand-written list, because two implementations that share
+code agree without proving anything — the same reasoning as the estatemap
+parity harness.
+
+**The `employee` name column is never selected.** It is lawfully public and
+irrelevant to every aggregate on the page. Counting people uses
+`employee_dataset_id`, which is also never published; traceability rows cite
+`record_id` so a reader can pull the original record from the City themselves.
+That keeps the decision to publish a name with the City, where it already sits.
+The verifier asserts the data sections carry neither field — do not relax it.
+
+**Chicago's terms require a specific disclaimer**, and the page carries it
+verbatim in the provenance panel along with the non-endorsement statement. Both
+are conditions of use, not decoration. Do not trim them.
+
+**Overtime is a judgement, and the page says so.** There is no overtime column;
+there are 127 pay elements. Three rules are computed and all three published,
+because the answer moves $184.7m between the narrowest and the widest. Figures
+elsewhere on the page use the middle rule, stated where they appear.
+
+The four findings are computed, not written down, so a rebuild against refreshed
+City data either keeps them true or fails the verifier. `lab/index.html` and
+`index.html` do state figures as static text; those carry `data-pp-figure`
+attributes and the verifier checks each against the snapshot exactly, failing if
+one goes missing rather than skipping.
+
+**Project 2's domain claims have not been through the confirmation gate.** The
+interpretive ones — that `DOCK` and `SUSPENSION` are recoveries rather than
+errors, that extreme low annual totals are part-year employment, that this
+concentration counts as broad-based — are Rehan's to confirm, the same as the
+notes and Project 1. Arithmetic is verified; meaning is not.
+
+Anchor offsets on Lab pages apply to `section[id]` rather than a list of stage
+ids. The list version left `#more` landing 41px under the sticky navigator,
+which is the second time enumerating those ids has caused exactly this bug.
+
 The homepage Lab preview states four findings as static text. `verify_corpus.py`
 reads them out of `index.html` and fails if they stop matching the corpus, so
 regenerating the data cannot silently leave the marketing copy wrong. Run it

@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Public Workforce &amp; Overtime Intelligence — Canyonland Technologies</title>
+  <meta name="description" content="Project 2: the same BI lifecycle run over real published data. 4.86 million City of Chicago payroll rows, every number traceable to the record it came from, every transformation rule stated." />
+  <link rel="canonical" href="https://www.canyonlandtech.com/lab/public-payroll.html" />
+  <meta name="theme-color" content="#14181d" />
+
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="Canyonland Technologies Inc." />
+  <meta property="og:url" content="https://www.canyonlandtech.com/lab/public-payroll.html" />
+  <meta property="og:title" content="Public Workforce &amp; Overtime Intelligence — Canyonland Technologies" />
+  <meta property="og:description" content="Project 2: the same BI lifecycle run over real published data. 4.86 million City of Chicago payroll rows, every number traceable to the record it came from, every transformation rule stated." />
+  <meta property="og:image" content="https://www.canyonlandtech.com/assets/og-image.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="Canyonland Technologies Inc." />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Public Workforce &amp; Overtime Intelligence — Canyonland Technologies" />
+  <meta name="twitter:description" content="Project 2: the same BI lifecycle run over real published data. 4.86 million City of Chicago payroll rows, every number traceable to the record it came from, every transformation rule stated." />
+  <meta name="twitter:image" content="https://www.canyonlandtech.com/assets/og-image.png" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap"
+    rel="stylesheet">
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="48x48" href="/assets/favicon-48.png">
+  <link rel="icon" type="image/png" sizes="96x96" href="/assets/favicon-96.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon-192.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png">
+
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="stylesheet" href="/lab/lab.css" />
+</head>
+
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+
+  <header class="masthead">
+    <div class="wrap">
+      <a class="mark" href="/" aria-label="Canyonland Technologies Inc. — home">
+        <img src="/assets/logo-400.png" width="400" height="180" alt="Canyonland Technologies Inc.">
+      </a>
+      <nav class="menu" id="menu" aria-label="Primary">
+        <a href="/#lifecycle">Lifecycle</a>
+        <a href="/portfolio.html">Portfolio</a>
+        <a href="/notes.html">Notes</a>
+        <a href="/lab/" aria-current="page">Lab</a>
+        <a href="/#focus">Focus</a>
+        <a href="/#about">About</a>
+        <a href="/#contact" class="cta-link">Contact</a>
+      </nav>
+      <button class="menu-btn" aria-label="Open menu" aria-expanded="false" aria-controls="menu">☰</button>
+    </div>
+  </header>
+
+  <main id="main">
+
+    <section class="hero" id="top">
+      <div class="wrap">
+        <p class="eyebrow">Project 2 · Public workforce intelligence</p>
+        <h1>Real public data. Stated rules. Every number traceable to its source.</h1>
+        <p class="standfirst">Project 1 decodes a file we wrote ourselves, which proves technique and nothing
+          else — a synthetic dataset cannot contradict you. This one runs the same lifecycle over 4.86 million
+          payroll records the City of Chicago publishes, so you can re-issue our queries against the City's own
+          API and either land on our numbers or catch us out.</p>
+
+        <div id="pp-summary" class="lab-summary" aria-live="polite">
+          <div class="lab-summary-strip">
+            <div class="lab-summary-item"><span class="lab-summary-value">—</span><span class="lab-summary-label">Loading</span></div>
+          </div>
+        </div>
+
+        <p class="lab-disclosure">Runs entirely in your browser against a cached snapshot. Nothing is uploaded,
+          nothing is stored, and no language model is involved — the findings below are written prose whose
+          numbers are computed from the data each time the page loads.</p>
+      </div>
+    </section>
+
+    <nav class="lab-nav" aria-label="Lab stages">
+      <div class="wrap">
+        <ol>
+          <li><a href="#provenance"><span class="lab-nav-no">Source</span> Provenance</a></li>
+          <li><a href="#stage-1"><span class="lab-nav-no">01</span> Extract</a></li>
+          <li><a href="#stage-2"><span class="lab-nav-no">02</span> Land</a></li>
+          <li><a href="#stage-3"><span class="lab-nav-no">03</span> Model</a></li>
+          <li><a href="#stage-4"><span class="lab-nav-no">04</span> Build</a></li>
+          <li><a href="#stage-ask"><span class="lab-nav-no">Ask</span> Questions</a></li>
+        </ol>
+      </div>
+    </nav>
+
+    <section class="band band--tint">
+      <div class="wrap">
+        <p id="pp-status" class="lab-status">Loading the snapshot…</p>
+      </div>
+    </section>
+
+    <section class="band" id="provenance">
+      <div class="wrap">
+        <p class="eyebrow">Source · before anything else</p>
+        <h2>Where this came from, and what we did to it.</h2>
+        <p class="lab-lede">A dashboard that will not tell you its source is asking to be trusted rather than
+          checked. This is the panel we would expect from anyone handing us a number.</p>
+        <div id="pp-provenance" class="lab-stage"><p class="lab-note">Loading…</p></div>
+      </div>
+    </section>
+
+    <section class="band band--tint" id="stage-1">
+      <div class="wrap">
+        <p class="eyebrow">Stage 01 · Extract</p>
+        <h2>Getting it out, and deciding what not to take.</h2>
+        <p class="lab-lede">The source is an API rather than a mainframe dataset, so the decoding problem of
+          Project 1 disappears. A different one replaces it: the file contains more than we should publish, and
+          the extract is where that gets decided.</p>
+        <div id="pp-extract" class="lab-stage"><p class="lab-note">Loading…</p></div>
+      </div>
+    </section>
+
+    <section class="band" id="stage-2">
+      <div class="wrap">
+        <p class="eyebrow">Stage 02 · Land</p>
+        <h2>Landing it is not the same as trusting it.</h2>
+        <p class="lab-lede">Row counts and totals per period, checked before anything is charted. Two of the four
+          findings on this page were caught here, and both would have produced a confident, wrong dashboard.</p>
+        <div id="pp-land" class="lab-stage"><p class="lab-note">Loading…</p></div>
+      </div>
+    </section>
+
+    <section class="band band--tint" id="stage-3">
+      <div class="wrap">
+        <p class="eyebrow">Stage 03 · Model</p>
+        <h2>Defining overtime, once, in the open.</h2>
+        <p class="lab-lede">There is no overtime column in this dataset. There are 127 pay elements and a
+          judgement to make about which of them count. This is the stage where that judgement gets written down
+          instead of being buried in a chart.</p>
+        <div id="pp-model" class="lab-stage"><p class="lab-note">Loading…</p></div>
+      </div>
+    </section>
+
+    <section class="band" id="stage-4">
+      <div class="wrap">
+        <p class="eyebrow">Stage 04 · Build</p>
+        <h2>The reports the model makes possible.</h2>
+        <p class="lab-lede">Aggregated by department, classification and time. Individual employees appear
+          nowhere: the analysis needs to count people, not name them.</p>
+        <div id="pp-build" class="lab-stage"><p class="lab-note">Loading…</p></div>
+      </div>
+    </section>
+
+    <section class="band band--tint" id="stage-ask">
+      <div class="wrap">
+        <p class="eyebrow">Ask · across every stage</p>
+        <h2>Six questions, answered with their working shown.</h2>
+        <p class="lab-lede">Each answer states the rule it depends on and the query that produced it. Where the
+          honest answer is "it depends on how you define it", it says so and gives the range.</p>
+        <div id="pp-ask" class="lab-stage"><p class="lab-note">Loading…</p></div>
+      </div>
+    </section>
+
+    <section class="band" id="more">
+      <div class="wrap">
+        <p class="eyebrow">If this is your problem</p>
+        <h2>Your data is messier than this, and it is not public.</h2>
+        <p class="lab-lede">Everything above was done against a source we have no relationship with, no
+          documentation for, and no ability to ask questions about. Inside an organisation we can ask — which is
+          how the four findings on this page become four conversations instead of four guesses.</p>
+        <p><a href="/#contact">Tell us what's stuck</a> — the first consultation is free, or
+          <a href="https://calendly.com/ceo-canyonlandtech" target="_blank" rel="noopener">book a time directly</a>.</p>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="foot">
+    <div class="wrap">
+      <div>
+        <img src="/assets/logo-320.png" width="320" height="144" alt="Canyonland Technologies Inc.">
+        <p>© <span id="year"></span> Canyonland Technologies Inc.</p>
+      </div>
+      <nav aria-label="Footer">
+        <a href="/#lifecycle">Lifecycle</a>
+        <a href="/portfolio.html">Portfolio</a>
+        <a href="/notes.html">Notes</a>
+        <a href="/lab/">Lab</a>
+        <a href="/#about">About</a>
+        <a href="/#contact">Contact</a>
+      </nav>
+    </div>
+  </footer>
+
+  <script src="/script.js"></script>
+  <script src="/lab/payroll.js"></script>
+</body>
+
+</html>
