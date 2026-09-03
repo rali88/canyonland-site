@@ -17,6 +17,7 @@ import base64
 import io
 import json
 import os
+import re
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -142,6 +143,28 @@ def main() -> int:
     orphan_dept = {e["dept"] for e in employees} - set(d["reference"]["departments"])
     check("department codes with no entry in the org table", len(orphan_dept) > 0,
           f"{sorted(orphan_dept)}")
+
+    print("\nHomepage Lab preview figures")
+    # The homepage states four findings as static text. Marketing copy that
+    # quietly stops matching the data is the failure mode this whole project
+    # argues against, so it is checked here rather than trusted.
+    home = os.path.abspath(os.path.join(HERE, "..", "..", "index.html"))
+    shown = []
+    try:
+        html = io.open(home, encoding="utf-8").read()
+        strip = re.search(r'lab-preview-strip">(.*?)</div>\s*\n\s*</div>', html, re.S)
+        shown = [int(n) for n in re.findall(r"<strong>(\d+)</strong>", strip.group(1))]
+    except Exception as exc:                       # pragma: no cover - I/O guard
+        check("homepage preview strip is readable", False, str(exc))
+
+    if shown:
+        want = [len(trans), len(excluded), len(orphan_dept), len(over)]
+        labels = ["transactions", "exclusions", "broken joins", "contribution errors"]
+        check("homepage figures match the corpus", shown == want,
+              f"page {shown} vs data {want}")
+        for label, a, b in zip(labels, shown, want):
+            if a != b:
+                print(f"        {label}: homepage says {a}, data says {b}")
 
     print(f"\n{'All checks passed.' if not failures else str(len(failures)) + ' FAILED'}")
     return 1 if failures else 0

@@ -146,6 +146,15 @@ decoder that silently disagrees with the first is worse than one decoder.
 The Tier 2 earnings cap is **a stated parameter of the synthetic dataset**, not
 any jurisdiction's statutory figure. Do not present it as real.
 
+Lab stages use the site's lifecycle vocabulary — Extract, Land, Model, Build —
+rather than a second set of names for the same process. **Ask is a capability
+shown across those four, not a fifth stage**, so it carries no stage number.
+
+The homepage Lab preview states four findings as static text. `verify_corpus.py`
+reads them out of `index.html` and fails if they stop matching the corpus, so
+regenerating the data cannot silently leave the marketing copy wrong. Run it
+after any change to either.
+
 **The Lab carries its own payload budget.** `lab/lab.css` and `lab/lab.js` load
 only on that page, deliberately, so the marketing pages keep their discipline.
 Do not move Lab styling into `styles.css`.

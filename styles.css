@@ -84,7 +84,10 @@ img{max-width:100%}
    a small gap. Keep this in step with the masthead's height. */
 section[id]{scroll-margin-top:84px}
 .masthead .wrap{display:flex;align-items:center;justify-content:space-between;gap:20px;min-height:70px}
-.mark img{width:154px;height:auto;display:block}
+/* The mark had ample resolution at 154px (400px source, 2.6x density) but read
+   as underweight beside the wordmark-heavy masthead. Scaled up, still inside
+   its source resolution at 1x and comfortably sharp on retina. */
+.mark img{width:clamp(168px,15vw,196px);height:auto;display:block}
 .menu{display:flex;align-items:center;gap:clamp(12px,2vw,26px)}
 .menu a{
   color:var(--ink-2);font-size:.875rem;font-weight:500;letter-spacing:.01em;
@@ -367,6 +370,15 @@ code{
   border-bottom:1px solid var(--rule);max-width:560px;
 }
 .book .footnote{margin-top:.9rem;font-size:.86rem;color:var(--ink-3)}
+
+/* Homepage Lab preview: the four outcome figures, in the same flat grid the
+   rest of the page uses. Four items divide evenly into four, two or one, so no
+   width leaves a hairline under part of a row. */
+.lab-preview-strip strong{
+  font-size:clamp(24px,2.8vw,32px);font-weight:300;line-height:1.1;
+  letter-spacing:-.02em;color:var(--ink);font-variant-numeric:tabular-nums;
+}
+.lab-preview-strip div{padding-top:1.2rem;padding-bottom:1.2rem}
 
 /* ---------- Contact ---------- */
 .form{display:grid;gap:1.4rem;max-width:560px;margin-top:.5rem}
