@@ -146,6 +146,15 @@ decoder that silently disagrees with the first is worse than one decoder.
 The Tier 2 earnings cap is **a stated parameter of the synthetic dataset**, not
 any jurisdiction's statutory figure. Do not present it as real.
 
+Lab stages use the site's lifecycle vocabulary — Extract, Land, Model, Build —
+rather than a second set of names for the same process. **Ask is a capability
+shown across those four, not a fifth stage**, so it carries no stage number.
+
+The homepage Lab preview states four findings as static text. `verify_corpus.py`
+reads them out of `index.html` and fails if they stop matching the corpus, so
+regenerating the data cannot silently leave the marketing copy wrong. Run it
+after any change to either.
+
 **The Lab carries its own payload budget.** `lab/lab.css` and `lab/lab.js` load
 only on that page, deliberately, so the marketing pages keep their discipline.
 Do not move Lab styling into `styles.css`.
@@ -174,7 +183,13 @@ Where a number would help but isn't verified, write the qualitative version.
   panel, prose and booking styles; `/lab/` is exempt and carries its own
   budget. If `styles.css` keeps growing, split it per page rather than letting
   every page pay for every feature.
-- Anchor targets rely on `scroll-margin-top` to clear the sticky header.
+- Anchor targets rely on `scroll-margin-top` to clear the sticky header, and it
+  derives from `--header-h` rather than a hardcoded number. The masthead is a
+  fixed 87px at every width because `.masthead .wrap` reserves the space and the
+  mark is capped to fit inside it. **Change the mark's size and you change the
+  masthead**, which is why enlarging it once pushed the Lab's stage navigator
+  underneath the header. Keep `--header-h` in step, and re-measure rather than
+  assuming.
 
 ## Before shipping
 

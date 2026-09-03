@@ -5,7 +5,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>BI Lifecycle Lab — Canyonland Technologies</title>
-  <meta name="description" content="Watch a fixed-length mainframe payroll extract become an answer: decoded from its copybook, profiled, modelled and reported, entirely in your browser on synthetic data." />
+  <meta name="description" content="Project 1: watch a fixed-length mainframe payroll extract become an answer — decoded from its copybook, landed, modelled and built into reports, entirely in your browser on synthetic data." />
   <link rel="canonical" href="https://www.canyonlandtech.com/lab/" />
   <meta name="theme-color" content="#14181d" />
 
@@ -13,14 +13,14 @@
   <meta property="og:site_name" content="Canyonland Technologies Inc." />
   <meta property="og:url" content="https://www.canyonlandtech.com/lab/" />
   <meta property="og:title" content="BI Lifecycle Lab — Canyonland Technologies" />
-  <meta property="og:description" content="Watch a fixed-length mainframe payroll extract become an answer: decoded from its copybook, profiled, modelled and reported, entirely in your browser on synthetic data." />
+  <meta property="og:description" content="Project 1: watch a fixed-length mainframe payroll extract become an answer — decoded from its copybook, landed, modelled and built into reports, entirely in your browser on synthetic data." />
   <meta property="og:image" content="https://www.canyonlandtech.com/assets/og-image.png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta property="og:image:alt" content="Canyonland Technologies Inc." />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="BI Lifecycle Lab — Canyonland Technologies" />
-  <meta name="twitter:description" content="Watch a fixed-length mainframe payroll extract become an answer: decoded from its copybook, profiled, modelled and reported, entirely in your browser on synthetic data." />
+  <meta name="twitter:description" content="Project 1: watch a fixed-length mainframe payroll extract become an answer — decoded from its copybook, landed, modelled and built into reports, entirely in your browser on synthetic data." />
   <meta name="twitter:image" content="https://www.canyonlandtech.com/assets/og-image.png" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -65,13 +65,18 @@
 
     <section class="hero" id="top">
       <div class="wrap">
-        <p class="eyebrow">BI Lifecycle Lab · Legacy payroll intelligence</p>
+        <p class="eyebrow">Project 1 · Legacy payroll intelligence</p>
         <h1>Watch a mainframe payroll extract become an answer.</h1>
-        <p class="standfirst">Four stages, on real bytes, in your browser. A fixed-length payroll extract is decoded
-          from its copybook, profiled for the problems it carries, modelled into a star schema, and turned into the
+        <p class="standfirst">Four stages of the lifecycle, on real bytes, in your browser. A fixed-length payroll
+          extract is decoded from its copybook, landed and reconciled, modelled into a star schema, and built into the
           reports a payroll director actually asks for.</p>
+
+        <div id="lab-summary" class="lab-summary" aria-live="polite">
+          <p class="lab-note">Analysing the extract…</p>
+        </div>
+
         <div class="hero-actions">
-          <a href="#stage-extract" class="btn">Start at the bytes</a>
+          <a href="#stage-1" class="btn">Start at the bytes</a>
           <a href="#stage-ask" class="btn btn--quiet">Skip to the questions</a>
         </div>
         <div class="hero-meta">
@@ -81,6 +86,18 @@
         </div>
       </div>
     </section>
+
+    <nav class="lab-nav" aria-label="Lab stages">
+      <div class="wrap">
+        <ol>
+          <li><a href="#stage-1"><span class="lab-nav-no">01</span> Extract</a></li>
+          <li><a href="#stage-2"><span class="lab-nav-no">02</span> Land</a></li>
+          <li><a href="#stage-3"><span class="lab-nav-no">03</span> Model</a></li>
+          <li><a href="#stage-4"><span class="lab-nav-no">04</span> Build</a></li>
+          <li><a href="#stage-ask"><span class="lab-nav-no">·</span> Ask</a></li>
+        </ol>
+      </div>
+    </nav>
 
     <section class="band band--tint">
       <div class="wrap">
@@ -105,12 +122,19 @@
 
     <section class="band band--tint" id="stage-2">
       <div class="wrap">
-        <p class="eyebrow">Stage 02 · Profile</p>
+        <p class="eyebrow">Stage 02 · Land</p>
         <h2>Decoding is not the same as trusting.</h2>
-        <p class="standfirst narrow">Every value now reads correctly. That says nothing about whether the data is
-          sound. This is the pass that finds what a load would otherwise carry straight into the warehouse and
-          present as fact.</p>
-        <div id="stage-profile" class="lab-stage"><p class="lab-note">Profiling…</p></div>
+        <p class="standfirst narrow">Landing the data means reconciling it against the source, not just loading it.
+          Every value now reads correctly, which says nothing about whether it is sound. This is the pass that finds
+          what a load would otherwise carry into the warehouse and present as fact.</p>
+        <div id="stage-land" class="lab-stage"><p class="lab-note">Reconciling…</p></div>
+
+        <div class="lab-bridge">
+          <p>We run this same reconciliation on legacy payroll, finance, HR and operational systems — the difference
+            being that the exclusions and contribution errors are real, and somebody is already asking about them.</p>
+          <p><a href="https://calendly.com/ceo-canyonlandtech" target="_blank" rel="noopener">Book a free 30-minute
+              call</a> to talk about what is in yours.</p>
+        </div>
       </div>
     </section>
 
@@ -126,21 +150,22 @@
 
     <section class="band band--tint" id="stage-4">
       <div class="wrap">
-        <p class="eyebrow">Stage 04 · Visualize</p>
+        <p class="eyebrow">Stage 04 · Build</p>
         <h2>The reports the model makes possible.</h2>
         <p class="standfirst narrow">Each of these is a question the payroll office asks. The query behind every one
           is available beneath it, because a number you cannot trace is a number you cannot defend.</p>
-        <div id="stage-visualize" class="lab-stage"><p class="lab-note">Building…</p></div>
+        <div id="stage-build" class="lab-stage"><p class="lab-note">Building…</p></div>
       </div>
     </section>
 
-    <section class="band" id="stage-5">
+    <section class="band" id="stage-ask">
       <div class="wrap">
-        <p class="eyebrow">Ask</p>
+        <p class="eyebrow">Ask · across every stage</p>
         <h2>The questions this actually gets asked.</h2>
-        <p class="standfirst narrow">Two of these came from the payroll floor rather than from a brochure. Every
-          answer is computed from the decoded data at the moment you open it.</p>
-        <div id="stage-ask" class="lab-stage"><p class="lab-note">Preparing…</p></div>
+        <p class="standfirst narrow">Not a fifth stage — asking is what the previous four make possible. Two of these
+          came from the payroll floor rather than from a brochure, and every answer is computed from the decoded data
+          at the moment you open it.</p>
+        <div id="stage-ask-body" class="lab-stage"><p class="lab-note">Preparing…</p></div>
       </div>
     </section>
 
@@ -148,16 +173,17 @@
       <div class="wrap">
         <p class="eyebrow">If this is your problem</p>
         <h2>Tell us what's stuck.</h2>
-        <p class="standfirst narrow">This ran on invented data. The same four stages run on yours — the difference is
-          that the exclusions and the contribution errors are real, and somebody is already asking about them. The
-          first consultation is free.</p>
+        <p class="standfirst narrow">This ran on invented data. The same four stages run on yours. The first
+          consultation is free.</p>
         <div class="hero-actions">
           <a href="https://calendly.com/ceo-canyonlandtech" class="btn" target="_blank" rel="noopener">
             Book a free 30-minute call</a>
           <a href="/#contact" class="btn btn--quiet">Write to us instead</a>
         </div>
-        <p class="case-note">The extraction rules behind Stage 01 are open source and checked against the same
-          fixtures as the tool that generates them — see <a href="/portfolio.html#estatemap">estatemap</a>.</p>
+        <p class="case-note">This is the first Lab project. Others — healthcare operations, finance, inventory —
+          will follow the same four stages. The extraction rules behind Stage 01 are open source and checked against
+          the same fixtures as the tool that generates them: see
+          <a href="/portfolio.html#estatemap">estatemap</a>.</p>
       </div>
     </section>
 

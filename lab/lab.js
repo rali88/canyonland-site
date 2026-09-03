@@ -235,7 +235,7 @@
     render();
   }
 
-  function stageProfile(root, model) {
+  function stageLand(root, model) {
     var f = model.findings;
 
     root.appendChild(el('p', 'lab-lede',
@@ -336,7 +336,7 @@
       'rather than a row that silently disappears.'));
   }
 
-  function stageVisualize(root, model) {
+  function stageBuild(root, model) {
     root.appendChild(el('p', 'lab-lede',
       'Four questions a payroll director asks, answered from the modelled data. ' +
       'The query behind each is available under it.'));
@@ -662,6 +662,36 @@
     return diffs;
   }
 
+  /* The result, stated before the method. Computed from the decoded data so it
+     cannot drift from what the stages below actually show. */
+  function renderSummary(model) {
+    var host = document.getElementById('lab-summary');
+    if (!host) return;
+    var f = model.findings;
+    // One department code with no org entry is one broken join, even though it
+    // costs several rows. Counting the rows and calling them joins overstates
+    // the number of distinct problems, which is the opposite of the point.
+    var joins = f.orphanDepts.length;
+    var items = [
+      [model.transactions.length, 'transactions analysed', false],
+      [f.excluded.length, 'excluded from the voucher', false],
+      [joins, joins === 1 ? 'broken join found' : 'broken joins found', true],
+      [f.overContributed.length, 'contribution errors found', true]
+    ];
+    host.innerHTML = '';
+    var strip = el('div', 'lab-summary-strip');
+    items.forEach(function (i) {
+      var cell = el('div', 'lab-summary-item' + (i[2] && i[0] > 0 ? ' is-finding' : ''));
+      cell.appendChild(el('span', 'lab-summary-value', String(i[0])));
+      cell.appendChild(el('span', 'lab-summary-label', i[1]));
+      strip.appendChild(cell);
+    });
+    host.appendChild(strip);
+    host.appendChild(el('p', 'lab-summary-note',
+      'Found by running the four stages below on a synthetic payroll extract. ' +
+      'Every figure is computed from the data in your browser, not written here in advance.'));
+  }
+
   function boot() {
     // Guard on the element this actually writes to, so the script stays inert
     // on every other page without depending on a container that may not exist.
@@ -689,12 +719,13 @@
           'reference implementation that wrote the bytes.';
       }
 
-      [['extract', stageExtract], ['profile', stageProfile],
-       ['model', stageModel], ['visualize', stageVisualize],
-       ['ask', stageAsk]].forEach(function (pair) {
+      [['extract', stageExtract], ['land', stageLand],
+       ['model', stageModel], ['build', stageBuild],
+       ['ask-body', stageAsk]].forEach(function (pair) {
         var host = document.getElementById('stage-' + pair[0]);
         if (host) { host.innerHTML = ''; pair[1](host, model); }
       });
+      renderSummary(model);
     }).catch(function (err) {
       status.className = 'lab-status is-bad';
       status.textContent = 'The Lab could not load its dataset (' + err.message +
