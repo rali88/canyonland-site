@@ -331,7 +331,36 @@ def main() -> None:
     ot_exempt = sorted(
         {t["emp"] for t in corpus["transactions"] if t["paycode"].strip() == "OT"}
         & {e["id"] for e in corpus["employees"] if e["flsa"] == "E"})
+    # Aggregates alone cannot prove a decode is right: a wrong offset for a name
+    # or a hire date leaves every count and total unchanged. These fully decoded
+    # sample records let the browser check field by field before it claims the
+    # decode matches. verify_corpus.py checks the same samples against the bytes,
+    # so the encoder is proved by one path and the JavaScript decoder by another.
+    def sample_employee(e):
+        return {"id": e["id"], "last": e["last"], "first": e["first"],
+                "dept": e["dept"], "status": e["status"], "flsa": e["flsa"],
+                "hired": e["hired"], "termed": e["termed"],
+                "rate": round(e["rate_cents"] / 100, 2), "tier": e["tier"],
+                "ytdPens": round(e["ytd_pens_cents"] / 100, 2),
+                "ytdTier2": round(e["ytd_t2_cents"] / 100, 2)}
+
+    def sample_transaction(t):
+        return {"emp": t["emp"], "period": t["period"],
+                "paycode": t["paycode"].strip(),
+                "hours": round(t["hours_c"] / 100, 2),
+                "mult": round(t["mult_c"] / 1000, 3),
+                "amount": round(t["amount_c"] / 100, 2),
+                "onVoucher": "Y" if t["on_voucher"] else "N",
+                "reason": t["reason"].strip()}
+
+    emp_idx = [0, 15, 31, 47, len(corpus["employees"]) - 1]
+    tran_idx = [0, 30, 60, 90, len(corpus["transactions"]) - 1]
+
     payload_expected = {
+        "sampleEmployees": [{"index": i, **sample_employee(corpus["employees"][i])}
+                            for i in emp_idx],
+        "sampleTransactions": [{"index": i, **sample_transaction(corpus["transactions"][i])}
+                               for i in tran_idx],
         "employeeCount": len(corpus["employees"]),
         "transactionCount": len(corpus["transactions"]),
         "excludedCount": len(excluded),

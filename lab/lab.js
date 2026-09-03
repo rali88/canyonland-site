@@ -364,19 +364,32 @@
       ' GROUP BY d.department_name\n' +
       ' ORDER BY gross_on_voucher DESC;'));
 
+    // Split on the row's own flag, not on the paycode's default. Cash paycodes
+    // carry excluded rows too — a terminated employee's regular pay is still
+    // REG — so grouping by paycode alone buries that money inside a bar that
+    // looks voucher-eligible.
     var byCode = {};
     model.transactions.forEach(function (t) {
-      var c = t.paycode.trim();
-      byCode[c] = (byCode[c] || 0) + t.amount;
+      var c = t.paycode.trim(), on = t.onVoucher === 'Y';
+      byCode[c] = byCode[c] || { on: 0, off: 0 };
+      byCode[c][on ? 'on' : 'off'] += t.amount;
     });
-    root.appendChild(el('h3', null, 'Amount by paycode, voucher and non-voucher'));
-    root.appendChild(bars(Object.keys(byCode).sort(function (a, b) {
-      return byCode[b] - byCode[a];
-    }).map(function (k) {
-      var meta = model.paycodeByCode[k];
-      return { label: k + (meta && !meta.onVoucher ? ' (not on voucher)' : ''),
-               value: byCode[k], flagged: meta && !meta.onVoucher };
-    }), money));
+    var codeRows = [];
+    Object.keys(byCode).sort(function (a, b) {
+      return (byCode[b].on + byCode[b].off) - (byCode[a].on + byCode[a].off);
+    }).forEach(function (k) {
+      if (byCode[k].on > 0) codeRows.push({ label: k, value: byCode[k].on });
+      if (byCode[k].off > 0) {
+        codeRows.push({ label: k + ' — excluded', value: byCode[k].off, flagged: true });
+      }
+    });
+    root.appendChild(el('h3', null, 'Amount by paycode, split by what reached the voucher'));
+    root.appendChild(bars(codeRows, money));
+    root.appendChild(el('p', 'lab-note',
+      'The excluded bars are the point. IMPU is non-cash and never reaches a ' +
+      'voucher by design, but REG, OT and SICK appear there too — real pay on ' +
+      'ordinary paycodes, removed by one of the four rules. Charting by paycode ' +
+      'alone would have hidden it inside the eligible totals.'));
     root.appendChild(sqlBlock(
       'SELECT p.paycode, p.reaches_voucher,\n' +
       '       SUM(f.amount) AS amount\n' +
@@ -474,14 +487,28 @@
         q: 'How much overtime was paid this period, and where?',
         a: function () {
           var ot = model.transactions.filter(function (t) { return t.paycode.trim() === 'OT'; });
-          var hrs = ot.reduce(function (s, t) { return s + t.hours; }, 0);
-          var amt = ot.reduce(function (s, t) { return s + t.amount; }, 0);
-          return ot.length + ' overtime rows, ' + hrs.toFixed(2) + ' hours, ' +
-            money(amt) + ' at the 1.5 multiplier. ' + f.otExempt.length +
-            ' of those rows sit against employees classified FLSA exempt (' +
-            f.otExempt.join(', ') + '), which is either a misclassification or a ' +
-            'miskeyed paycode. Either way it is a question for HR before it is a ' +
-            'question for payroll.';
+          var paid = ot.filter(function (t) { return t.onVoucher === 'Y'; });
+          var held = ot.filter(function (t) { return t.onVoucher === 'N'; });
+          var paidAmt = paid.reduce(function (s, t) { return s + t.amount; }, 0);
+          var paidHrs = paid.reduce(function (s, t) { return s + t.hours; }, 0);
+          var heldAmt = held.reduce(function (s, t) { return s + t.amount; }, 0);
+          // "Paid" has to mean reached the voucher. Reporting all overtime rows
+          // as paid overstates it by whatever the exclusions removed.
+          var txt = money(paidAmt) + ' across ' + paid.length + ' rows and ' +
+            paidHrs.toFixed(2) + ' hours reached the voucher at the 1.5 multiplier.';
+          if (held.length) {
+            txt += ' A further ' + held.length + ' overtime ' +
+              (held.length === 1 ? 'row' : 'rows') + ' worth ' + money(heldAmt) +
+              ' did not, so any report totalling every OT row overstates what was ' +
+              'actually paid.';
+          }
+          if (f.otExempt.length) {
+            txt += ' Separately, ' + f.otExempt.length + ' overtime rows sit against ' +
+              'employees classified FLSA exempt (' + f.otExempt.join(', ') + '), which ' +
+              'is either a misclassification or a miskeyed paycode — a question for HR ' +
+              'before it is a question for payroll.';
+          }
+          return txt;
         },
         fields: 'PT-PAYCODE, PT-HOURS, PT-AMOUNT, EM-FLSA-CLASS'
       },
@@ -573,7 +600,37 @@
     };
   }
 
-  /* The browser decode must agree with the Python that wrote the bytes. */
+  /* The browser decode must agree with the Python that wrote the bytes.
+   *
+   * Aggregates alone cannot establish that: a wrong offset for a name or a hire
+   * date leaves every count and total identical while the Extract table shows
+   * nonsense. So this compares fully decoded sample records field by field
+   * first, and only then the aggregates. The status message says which was
+   * checked rather than claiming more than was done. */
+  function sampleDiffs(records, expectedSamples, fields, label) {
+    var diffs = [];
+    expectedSamples.forEach(function (want) {
+      var got = records[want.index];
+      if (!got) { diffs.push(label + ' ' + want.index + ': missing'); return; }
+      fields.forEach(function (f) {
+        if (!(f in want)) return;
+        var a = got[f], b = want[f];
+        if (typeof a === 'string') a = a.trim();
+        if (typeof a === 'number' && typeof b === 'number') {
+          if (Math.abs(a - b) > 0.005) {
+            diffs.push(label + ' ' + want.index + '.' + f + ': expected ' + b + ', decoded ' + a);
+          }
+          return;
+        }
+        if (a !== b) {
+          diffs.push(label + ' ' + want.index + '.' + f + ': expected ' +
+                     JSON.stringify(b) + ', decoded ' + JSON.stringify(a));
+        }
+      });
+    });
+    return diffs;
+  }
+
   function selfCheck(model, expected) {
     var got = {
       employeeCount: model.employees.length,
@@ -587,8 +644,16 @@
       grossOnVoucherCents: Math.round(
         model.onVoucher.reduce(function (s, t) { return s + t.amount; }, 0) * 100)
     };
-    var diffs = [];
+    var diffs = sampleDiffs(model.employees, expected.sampleEmployees || [],
+      ['id', 'last', 'first', 'dept', 'status', 'flsa', 'hired', 'termed',
+       'rate', 'tier', 'ytdPens', 'ytdTier2'], 'employee');
+    diffs = diffs.concat(sampleDiffs(model.transactions,
+      expected.sampleTransactions || [],
+      ['emp', 'period', 'paycode', 'hours', 'mult', 'amount', 'onVoucher', 'reason'],
+      'transaction'));
+
     Object.keys(expected).forEach(function (k) {
+      if (k === 'sampleEmployees' || k === 'sampleTransactions') return;
       if (JSON.stringify(got[k]) !== JSON.stringify(expected[k])) {
         diffs.push(k + ': expected ' + JSON.stringify(expected[k]) +
                    ', decoded ' + JSON.stringify(got[k]));
@@ -616,9 +681,12 @@
           diffs.join(' · ') + '. The results below are not trustworthy.';
       } else {
         status.className = 'lab-status is-ok';
+        var nEmp = (payload.expected.sampleEmployees || []).length;
+        var nTran = (payload.expected.sampleTransactions || []).length;
         status.textContent = 'Decoded ' + model.employees.length + ' employee records and ' +
-          model.transactions.length + ' transactions in your browser. Every extracted ' +
-          'value matches the reference implementation that wrote the bytes.';
+          model.transactions.length + ' transactions in your browser. Every field of ' +
+          (nEmp + nTran) + ' sampled records, and every summary figure below, matches the ' +
+          'reference implementation that wrote the bytes.';
       }
 
       [['extract', stageExtract], ['profile', stageProfile],
