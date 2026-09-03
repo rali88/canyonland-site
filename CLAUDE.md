@@ -44,7 +44,7 @@ can describe in full.
 The homepage keeps a compact teaser at `#work` — the four engagement titles with
 their stage tags and a link through. That anchor is retained so older `/#work`
 links still land on relevant content, even though the nav item is gone. Nav is
-Lifecycle · Portfolio · Focus · About · Contact; there is deliberately no
+Lifecycle · Portfolio · Notes · Focus · About · Contact; there is deliberately no
 separate "Work" item, because two names for the same promise made the nav
 ambiguous.
 
