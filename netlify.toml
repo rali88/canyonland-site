@@ -12,6 +12,14 @@
   status = 301
   force = true
 
+# The Lab's corpus generator and its verifier live in the repo so the synthetic
+# data is reproducible, but they are authoring tools, not part of the site.
+# Serve the 404 page rather than the Python source.
+[[redirects]]
+  from = "/lab/tools/*"
+  to = "/404.html"
+  status = 404
+
 # Asset filenames here are dimension-based (logo-400.png, favicon-32.png), not
 # content-hashed, so they are mutable: replacing a logo reuses its name. A
 # year-long cache meant returning visitors could keep the old file for up to a
