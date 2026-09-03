@@ -149,7 +149,8 @@
       annualHeadcount: model.actual.annualHeadcount,
       pointInTime: model.actual.pointInTime,
       departments: model.departments.length,
-      findings: model.findings.length
+      findings: model.findings.length,
+      actualOnlyEmployees: model.join.actualOnlyEmployees
     };
     var bad = [];
     Object.keys(e).forEach(function (k) {
@@ -332,8 +333,12 @@
     host.appendChild(el('h3', null, 'What still does not match, and why that matters'));
     paragraph(host, strong(count(j.actualOnly)) + ' department-title combinations appear in ' +
       'the payroll and in no budget line — ' + strong(count(j.actualOnlyEmployees)) +
-      ' people paid ' + strong(big(j.actualOnlyAmount)) + '. Anyone reporting budget against ' +
-      'actual by title, having got the join working, would silently drop all of them.');
+      ' distinct people paid ' + strong(big(j.actualOnlyAmount)) + '. Anyone reporting budget ' +
+      'against actual by title, having got the join working, would silently drop all of them.');
+    host.appendChild(el('p', 'lab-note', 'Counted as people rather than as rows: ' +
+      count(j.actualOnlyRowSum) + ' would be the figure if each department-title a person ' +
+      'held were counted separately, and ' + count(j.multiTitlePeople) + ' people account ' +
+      'for ' + count(j.multiTitleRows) + ' such combinations across the year.'));
     host.appendChild(el('p', 'lab-caption', 'Paid, but matching no budgeted title'));
     host.appendChild(table(['Title', 'Department', 'People', 'Paid'],
       j.topActualOnly.slice(0, 6).map(function (t) {
@@ -410,16 +415,21 @@
       'Budgeted against actual, ' + model.rules.focusYear));
     host.appendChild(table(
       ['Department', 'Budgeted FTE', 'Paid in period ' + model.rules.pointInTimePeriod,
-       'Budgeted', 'Paid'],
+       'Budgeted for positions', 'Other budget lines', 'Paid'],
       depts.slice(0, 14).map(function (d) {
         return [niceName(d.name), dec(d.budgetFte, 0), count(d.pointInTime),
-          big(d.budgetAmount), big(d.actualAmount)];
+          big(d.budgetPositionAmount), big(d.budgetNonPositionAmount),
+          big(d.actualAmount)];
       })));
-    host.appendChild(el('p', 'lab-note', 'Paid exceeds budgeted in most departments, and ' +
-      'that is expected rather than alarming: the payroll includes overtime and staff funded ' +
-      'outside the ordinance, while the budget column counts base salary for funded ' +
-      'positions only. The two columns are adjacent, not comparable, and the next section ' +
-      'is about why.'));
+    var note = el('p', 'lab-note');
+    note.innerHTML = 'The budget is split into two columns because it holds two different ' +
+      'things. ' + strong(big(model.budget.nonPositionAmount)) + ' city-wide sits in lines ' +
+      'carrying no headcount at all — fringe benefits, salary adjustment pools — and folding ' +
+      'those into a salary figure would repeat exactly the mixed-units error above. Paid ' +
+      'still exceeds budgeted positions in most departments, which is expected rather than ' +
+      'alarming: payroll includes overtime and staff funded outside the ordinance. The ' +
+      'columns sit side by side because they are adjacent, not because they are comparable.';
+    host.appendChild(note);
     attachQuery(host, model, 'Employees paid and dollars');
 
     if (model.nameMismatches) {
@@ -455,7 +465,15 @@
     var depts = model.departments.filter(function (d) {
       return d.budgetFte !== null && d.pointInTime;
     });
-    var biggest = depts.slice().sort(function (x, y) {
+    // Ranked by the quantity the answer names. Sorting by payroll size and
+    // calling the result the largest gap happens to agree on this snapshot and
+    // would not on the next one.
+    var gapOf = function (d) {
+      return Math.abs((d.actualAmount || 0) - (d.budgetPositionAmount || 0));
+    };
+    var byGap = depts.slice().sort(function (x, y) { return gapOf(y) - gapOf(x); });
+    var biggest = byGap[0];
+    var bySize = depts.slice().sort(function (x, y) {
       return y.actualAmount - x.actualAmount; })[0];
 
     var qs = [
@@ -467,8 +485,12 @@
           strong(count(a.pointInTime)) + ' people paid in the final period, which looks like ' +
           strong(dec(Math.abs(vac.naiveGap), 0)) + ' more staff than positions.',
           'It is not a vacancy rate because the two sides do not cover the same population. ' +
-          strong(count(j.actualOnlyEmployees)) + ' people were paid under titles that appear ' +
-          'in no budget line at all — ' + strong(big(j.actualOnlyAmount)) + ' of payroll ' +
+          strong(count(j.actualOnlyEmployees)) + ' distinct people were paid during the year ' +
+          'under titles that appear in no budget line at all, ' +
+          strong(count(j.actualOnlyEmployeesPointInTime)) + ' of them in the same final ' +
+          'period the headcount above uses — ' +
+          strong(pct(j.actualOnlyEmployeesPointInTime / a.pointInTime * 100)) +
+          ' of the workforce, carrying ' + strong(big(j.actualOnlyAmount)) + ' of payroll ' +
           'outside the ordinance’s title system. Until that is reconciled or explained by ' +
           'someone inside the City, any vacancy figure derived here is a subtraction between ' +
           'two different things.',
@@ -524,10 +546,15 @@
       {
         q: 'Which department has the largest gap between budgeted and paid?',
         body: [
-          strong(niceName(biggest.name)) + ' is the largest in absolute terms — ' +
-          strong(big(biggest.budgetAmount)) + ' budgeted against ' +
-          strong(big(biggest.actualAmount)) + ' paid — but it is also the largest department, ' +
-          'so that ranking mostly measures size.',
+          strong(niceName(biggest.name)) + ', at ' +
+          strong(big(gapOf(biggest))) + ' — ' + strong(big(biggest.budgetPositionAmount)) +
+          ' budgeted for positions against ' + strong(big(biggest.actualAmount)) +
+          ' paid.' + (biggest.name === bySize.name
+            ? ' It is also the largest department by payroll, so this ranking and a ranking ' +
+              'by size agree here; they will not always, which is why the gap is what gets ' +
+              'sorted.'
+            : ' The largest department by payroll is ' + strong(niceName(bySize.name)) +
+              ', which is not the same answer — ranking by size would have given it.'),
           'The gap is also not overspend. Budgeted salary excludes overtime, and Project 2 ' +
           'found overtime running to ' + strong('hundreds of millions') + ' across the City. ' +
           'A responsible version of this comparison adds the appropriation lines that fund ' +

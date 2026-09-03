@@ -20,6 +20,7 @@ import io
 import json
 import os
 import re
+import time
 import urllib.parse
 import urllib.request
 
@@ -46,14 +47,25 @@ def check(label, ok, detail=""):
         failures.append(label)
 
 
-def get(dataset, params):
+def get(dataset, params, timeout=300):
+    """One query, retried. The largest of these pulls tens of thousands of
+    grouped rows and the portal is occasionally slow enough to time out; a
+    verifier that fails on a slow network teaches the wrong lesson."""
     url = ("https://" + DOMAIN + "/resource/" + dataset + ".json?"
            + urllib.parse.urlencode(params))
     req = urllib.request.Request(url, headers={
         "Accept": "application/json",
         "User-Agent": "canyonland-lab-verify/1.0"})
-    with urllib.request.urlopen(req, timeout=180) as r:
-        return json.load(r)
+    last = None
+    for attempt in range(4):
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as r:
+                return json.load(r)
+        except Exception as exc:                      # pragma: no cover - network
+            last = exc
+            print("    retry %d after %s" % (attempt + 1, exc))
+            time.sleep(4 * (attempt + 1))
+    raise last
 
 
 def num(v):
@@ -191,10 +203,41 @@ def main():
           vac["actualOnlyEmployees"] > 0 and vac["actualOnlyAmount"] > 0,
           "%s people, $%s" % (format(vac["actualOnlyEmployees"], ","),
                               format(vac["actualOnlyAmount"], ",.0f")))
+    # Recount the unmatched population from the source as a set of distinct
+    # people. Summing count(distinct ...) across grouped rows counts anyone who
+    # held two department-titles twice, and this number carries the refusal.
+    grid = []
+    offset = 0
+    while True:
+        chunk = get(PAYROLL, {
+            "$select": "employee_dataset_id,department_code,title_code",
+            "$where": "payroll_year='" + focus + "'",
+            "$group": "employee_dataset_id,department_code,title_code",
+            "$order": "employee_dataset_id",
+            "$limit": "40000", "$offset": str(offset)})
+        grid.extend(chunk)
+        if len(chunk) < 40000:
+            break
+        offset += 40000
+    unmatched_keys = norm_a - norm_b
+    people = set(r["employee_dataset_id"] for r in grid
+                 if (normalise(r.get("department_code")),
+                     normalise(r.get("title_code"))) in unmatched_keys)
+    check("unmatched people recounted from source as distinct individuals",
+          len(people) == vac["actualOnlyEmployees"],
+          "%s at source, %s in snapshot" % (format(len(people), ","),
+                                            format(vac["actualOnlyEmployees"], ",")))
+    check("the distinct count is below the sum of group counts, as it must be",
+          d["join"]["actualOnlyEmployees"] <= d["join"]["actualOnlyRowSum"],
+          "%s distinct vs %s row-sum"
+          % (format(d["join"]["actualOnlyEmployees"], ","),
+             format(d["join"]["actualOnlyRowSum"], ",")))
     check("unmatched payroll is a material share of the workforce",
-          vac["actualOnlyEmployees"] / pit > 0.05,
+          vac["actualOnlyEmployeesPointInTime"] / pit > 0.05,
           "%.1f%% of point-in-time headcount"
-          % (vac["actualOnlyEmployees"] / pit * 100))
+          % (vac["actualOnlyEmployeesPointInTime"] / pit * 100))
+    check("the point-in-time unmatched count is a subset of the annual one",
+          vac["actualOnlyEmployeesPointInTime"] <= vac["actualOnlyEmployees"])
     check("budget-only keys are split into positions and non-positions",
           d["join"]["budgetOnlyNonPosition"] + d["join"]["budgetOnlyRealPositions"]
           == d["join"]["budgetOnly"])
@@ -210,6 +253,18 @@ def main():
           all((x.get("name") or "").strip() for x in d["departments"]))
     check("no department reports negative pay",
           all((x["actualAmount"] or 0) >= 0 for x in d["departments"]))
+    check("each department's budget splits into positions and non-positions",
+          all(close((x["budgetPositionAmount"] or 0)
+                    + (x["budgetNonPositionAmount"] or 0),
+                    x["budgetAmount"] or 0, 0.02)
+              for x in d["departments"] if x["budgetAmount"] is not None))
+    check("the split totals reconcile to the budget total",
+          close(d["budget"]["positionAmount"] + d["budget"]["nonPositionAmount"],
+                d["budget"]["amount"], 1.0),
+          "$%s + $%s vs $%s" % (
+              format(d["budget"]["positionAmount"], ",.0f"),
+              format(d["budget"]["nonPositionAmount"], ",.0f"),
+              format(d["budget"]["amount"], ",.0f")))
 
     # ---- page copy --------------------------------------------------------
     print("\nPage copy that states figures as static text")
