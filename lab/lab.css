@@ -1,0 +1,114 @@
+/* Styling for the BI Lifecycle Lab only.
+   Kept out of styles.css so the marketing pages do not carry the weight of
+   a page they never show. The Lab has its own payload budget by decision;
+   the rest of the site keeps its 82KB discipline. */
+
+/* ---------- BI Lifecycle Lab ---------- */
+/* The Lab is dense where the rest of the site is airy, so it leans harder on
+   mono and hairlines to stay recognisably the same system. Accent is reserved
+   for one job here: marking a finding that needs a decision. Nothing else on
+   these pages is orange. */
+.lab-status{
+  font-family:var(--mono);font-size:.82rem;line-height:1.6;
+  padding-left:1rem;border-left:2px solid var(--rule-strong);color:var(--ink-2);
+}
+.lab-status.is-ok{border-left-color:var(--rule-strong)}
+.lab-status.is-bad{border-left-color:var(--accent);color:var(--ink)}
+.lab-disclosure{
+  margin-top:1.4rem;font-size:.88rem;color:var(--ink-3);max-width:var(--measure);
+}
+.lab-stage{margin-top:clamp(26px,3vw,38px)}
+.lab-lede{font-size:1rem;color:var(--ink-2);max-width:var(--measure);margin:0 0 1.6rem}
+.lab-note{font-size:.9rem;color:var(--ink-3);max-width:var(--measure);margin:1.1rem 0 0}
+.lab-caption{
+  font-family:var(--mono);font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink-3);margin:0 0 .5rem;
+}
+.lab-stage h3{
+  font-size:1.08rem;font-weight:500;margin:clamp(30px,3.4vw,44px) 0 .8rem;color:var(--ink);
+}
+
+/* Record stepper */
+.lab-picker{display:flex;flex-wrap:wrap;gap:.7rem;align-items:center;margin-bottom:1.4rem}
+.lab-pos{font-family:var(--mono);font-size:.74rem;letter-spacing:.05em;color:var(--ink-3)}
+
+/* Byte dump */
+.lab-hex pre,.lab-sql pre{
+  margin:0;padding:1rem;overflow-x:auto;
+  background:var(--paper);border:1px solid var(--rule);
+}
+.lab-hex code,.lab-sql code{
+  font-family:var(--mono);font-size:.74rem;line-height:1.7;color:var(--ink-2);
+  background:none;border:none;padding:0;white-space:pre;
+}
+.lab-hex .lab-caption:last-child{margin:.7rem 0 0}
+
+/* Tables */
+.lab-table-wrap{overflow-x:auto;margin-top:.4rem}
+.lab-table{width:100%;border-collapse:collapse;font-size:.85rem;color:var(--ink-2)}
+.lab-table th{
+  font-family:var(--mono);font-size:.64rem;font-weight:500;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--ink-3);text-align:left;white-space:nowrap;
+  padding:.5rem .9rem .5rem 0;border-bottom:1px solid var(--rule-strong);
+}
+.lab-table td{
+  padding:.5rem .9rem .5rem 0;border-bottom:1px solid var(--rule);
+  vertical-align:top;font-variant-numeric:tabular-nums;
+}
+.lab-table code{background:none;border:none;padding:0;font-size:.95em}
+.lab-table tr.flagged td{background:var(--accent-tint)}
+.lab-flag{font-family:var(--mono);font-size:.68rem;letter-spacing:.06em;color:var(--accent)}
+
+/* Bars */
+.lab-bars{display:grid;gap:.5rem;margin-top:.6rem}
+.lab-bar{display:grid;grid-template-columns:minmax(9rem,14rem) 1fr auto;gap:.9rem;align-items:center}
+.lab-bar-label{font-size:.85rem;color:var(--ink-2)}
+.lab-bar-track{height:10px;background:var(--ground-2);border:1px solid var(--rule);display:block}
+.lab-bar-fill{display:block;height:100%;background:var(--ink-3)}
+.lab-bar-fill.is-flagged{background:var(--accent)}
+.lab-bar-value{
+  font-family:var(--mono);font-size:.74rem;color:var(--ink-3);
+  font-variant-numeric:tabular-nums;white-space:nowrap;
+}
+
+/* Star schema */
+.lab-grain{
+  font-family:var(--mono);font-size:.76rem;letter-spacing:.05em;color:var(--ink-2);
+  padding:.7rem 0 .9rem;border-top:1px solid var(--rule-strong);
+  border-bottom:1px solid var(--rule);margin-bottom:1.6rem;
+}
+.lab-star{display:grid;gap:clamp(16px,2vw,26px)}
+.lab-dims{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:clamp(16px,2vw,26px)}
+.lab-node{border-top:1px solid var(--rule-strong);padding-top:.8rem}
+.lab-node--fact{border-top-color:var(--accent)}
+.lab-node-kind{
+  font-family:var(--mono);font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--ink-3);margin:0 0 .3rem;
+}
+.lab-node h4{font-family:var(--mono);font-size:.82rem;font-weight:500;color:var(--ink);margin:0 0 .6rem}
+.lab-col{font-family:var(--mono);font-size:.72rem;color:var(--ink-3);line-height:1.85;margin:0}
+
+/* Disclosure blocks */
+.lab-sql,.lab-q{border-bottom:1px solid var(--rule)}
+.lab-sql{margin-top:.9rem;border-bottom:none}
+.lab-sql summary,.lab-q summary{
+  cursor:pointer;list-style:none;padding:.75rem 0;
+}
+.lab-sql summary::-webkit-details-marker,.lab-q summary::-webkit-details-marker{display:none}
+.lab-sql summary{
+  font-family:var(--mono);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);
+}
+.lab-sql summary:hover,.lab-q summary:hover .lab-q-text{color:var(--accent)}
+.lab-sql summary:focus-visible,.lab-q summary:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.lab-q:first-of-type{border-top:1px solid var(--rule-strong)}
+.lab-q-text{font-size:1rem;color:var(--ink);line-height:1.45}
+.lab-q-body{padding:0 0 1.2rem;max-width:var(--measure);display:grid;gap:.7rem}
+.lab-q-body p{font-size:.95rem;color:var(--ink-2)}
+.lab-q-fields{
+  font-family:var(--mono);font-size:.68rem;letter-spacing:.05em;color:var(--ink-3);
+}
+
+@media (max-width:620px){
+  .lab-bar{grid-template-columns:1fr;gap:.2rem}
+  .lab-bar-track{height:8px}
+}

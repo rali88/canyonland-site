@@ -4,7 +4,7 @@ Static marketing site. Plain HTML/CSS/JS, no build step, deployed on Netlify
 from `main`. **Pushing to `main` publishes immediately.**
 
 ```
-index.html  portfolio.html  notes.html  notes/
+index.html  portfolio.html  notes.html  notes/  lab/
 styles.css  script.js  success.html  404.html
 netlify.toml  robots.txt  sitemap.xml  assets/
 ```
@@ -125,6 +125,31 @@ port is therefore checked against the same fixtures by a harness in the tool's
 repository (`tests/browser/`), which deep-compares every extracted fact and
 must report zero divergences. **Re-run it after changing either implementation.**
 
+## The BI Lifecycle Lab
+
+`/lab/` walks a synthetic mainframe payroll extract through Extract, Profile,
+Model and Visualize, then answers a set of curated questions. It runs entirely
+in the browser: nothing is uploaded, nothing is stored, and **no language model
+is involved** — the answers are written prose with their numbers computed from
+the decoded data each time they are shown.
+
+**The corpus is synthetic and must stay that way.** `lab/tools/` holds the
+generator and an independent verifier; `netlify.toml` serves 404 for
+`/lab/tools/*` so the source is not published. Regenerate with
+`py lab/tools/make_payroll_corpus.py`, then `py lab/tools/verify_corpus.py`.
+
+The generator emits an `expected` block and `lab/lab.js` checks its own decode
+against it on load, reporting a mismatch on the page rather than showing
+confident nonsense. Same reasoning as the estatemap parity harness: a second
+decoder that silently disagrees with the first is worse than one decoder.
+
+The Tier 2 earnings cap is **a stated parameter of the synthetic dataset**, not
+any jurisdiction's statutory figure. Do not present it as real.
+
+**The Lab carries its own payload budget.** `lab/lab.css` and `lab/lab.js` load
+only on that page, deliberately, so the marketing pages keep their discipline.
+Do not move Lab styling into `styles.css`.
+
 ## Content constraints
 
 **Client identities are confidential.** Engagements are attributed as
@@ -145,7 +170,10 @@ Where a number would help but isn't verified, write the qualitative version.
 - The Netlify form needs both the real `<form>` and the hidden detection form at
   the end of `<body>`. Field name changes must be made in both.
 - Assets: reference `logo-400.png` / `logo-320.png`, never the 3000px
-  `logo.png` source. Page payload is ~82KB; keep it there.
+  `logo.png` source. Marketing pages were ~82KB and are now ~86KB after the
+  panel, prose and booking styles; `/lab/` is exempt and carries its own
+  budget. If `styles.css` keeps growing, split it per page rather than letting
+  every page pay for every feature.
 - Anchor targets rely on `scroll-margin-top` to clear the sticky header.
 
 ## Before shipping

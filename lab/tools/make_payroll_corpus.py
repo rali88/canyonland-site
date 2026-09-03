@@ -322,6 +322,29 @@ def main() -> None:
     over_contrib = [e for e in at_cap
                     if e["ytd_t2_cents"] > int(TIER2_EARNINGS_CAP * TIER2_RATE)]
 
+    # What the browser decoder must reproduce. The page checks itself against
+    # these on load: if the JavaScript decode disagrees with the Python that
+    # wrote the bytes, the Lab says so rather than showing confident nonsense.
+    by_reason: dict[str, int] = {}
+    for t in excluded:
+        by_reason[t["reason"]] = by_reason.get(t["reason"], 0) + 1
+    ot_exempt = sorted(
+        {t["emp"] for t in corpus["transactions"] if t["paycode"].strip() == "OT"}
+        & {e["id"] for e in corpus["employees"] if e["flsa"] == "E"})
+    payload_expected = {
+        "employeeCount": len(corpus["employees"]),
+        "transactionCount": len(corpus["transactions"]),
+        "excludedCount": len(excluded),
+        "excludedByReason": by_reason,
+        "tier2AtCap": sorted(e["id"] for e in at_cap),
+        "tier2OverContributed": sorted(e["id"] for e in over_contrib),
+        "overtimeOnExempt": ot_exempt,
+        "orphanDepartments": sorted(
+            {e["dept"] for e in corpus["employees"]} - set(DEPT_NAMES)),
+        "grossOnVoucherCents": sum(
+            t["amount_c"] for t in corpus["transactions"] if t["on_voucher"]),
+    }
+
     payload = {
         "generated": {
             "seed": SEED,
@@ -349,6 +372,7 @@ def main() -> None:
             "employeeCount": len(corpus["employees"]),
             "transactionCount": len(corpus["transactions"]),
         },
+        "expected": payload_expected,
     }
 
     path = os.path.join(OUT, "payroll-corpus.json")
