@@ -315,6 +315,15 @@ code{
   .demo-grid{grid-template-columns:1fr}
 }
 
+/* The Focus list carries five audiences. Five divides evenly only into five
+   columns or one; any other count leaves the final row with a hairline under
+   part of its width instead of a continuous rule, which reads as a broken
+   line. Scoped to #focus so the four-item work teaser keeps auto-fit. */
+#focus .focus-list{grid-template-columns:1fr}
+@media (min-width:1000px){
+  #focus .focus-list{grid-template-columns:repeat(5,1fr)}
+}
+
 /* ---------- Contact ---------- */
 .form{display:grid;gap:1.4rem;max-width:560px;margin-top:.5rem}
 .field{display:grid;gap:.45rem}
