@@ -360,6 +360,14 @@ code{
 .note h2 a:hover{color:var(--accent)}
 .note .case-client{margin:0 0 .6rem}
 
+/* Booking sits above the form: the faster route first, with the form as the
+   alternative rather than the default. Hairline separated, like everything else. */
+.book{
+  margin:0 0 clamp(30px,4vw,42px);padding-bottom:clamp(26px,3vw,34px);
+  border-bottom:1px solid var(--rule);max-width:560px;
+}
+.book .footnote{margin-top:.9rem;font-size:.86rem;color:var(--ink-3)}
+
 /* ---------- Contact ---------- */
 .form{display:grid;gap:1.4rem;max-width:560px;margin-top:.5rem}
 .field{display:grid;gap:.45rem}

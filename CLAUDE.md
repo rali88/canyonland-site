@@ -65,6 +65,12 @@ They exist to bring in search traffic and to give a prospect something to judge
 before making contact, so each ends with the same call to action and the free
 first consultation.
 
+Booking goes to <https://calendly.com/ceo-canyonlandtech>, linked rather than
+embedded. An embedded scheduler would drag third-party scripts and cookies onto
+every page carrying it and would not match the design system; a link costs
+nothing and keeps the site free of both. Every such link opens in a new tab and
+carries `rel="noopener"`.
+
 They make technical claims about mainframe practice — encodings, record formats,
 report-writer semantics. **Those claims are the author's to verify**, not
 something to extend from general knowledge. Adding a new note means adding
