@@ -216,6 +216,43 @@ Anchor offsets on Lab pages apply to `section[id]` rather than a list of stage
 ids. The list version left `#more` landing 41px under the sticky navigator,
 which is the second time enumerating those ids has caused exactly this bug.
 
+## Lab Project 3 — budget against actual
+
+`/lab/budget-actual.html` reconciles the City's 2025 Budget Ordinance
+(positions and salaries, `2bp7-w85v`) against the payroll costing dataset
+Project 2 uses. It exists because Projects 1 and 2 each read a single source,
+and most real work is two systems that disagree.
+
+```
+py lab/tools/fetch_chicago_budget.py     # rebuild the snapshot (network)
+py lab/tools/verify_chicago_budget.py    # independent re-join (network)
+```
+
+The three projects make one argument and should keep making it: 1 shows the
+file can be read, 2 shows the numbers are right, 3 shows the judgement. Do not
+add a fourth that only repeats one of those.
+
+**Three rules carry the whole page, and all three are printed on it** rather
+than living in the code: how codes normalise between the systems (strip a
+leading `D`/`T`, then leading zeros), what an FTE is (2080 hours), and which
+headcount a question wants (point-in-time, not annual distinct). Each changes
+the answer, and none is in either dataset's documentation.
+
+**The page refuses to publish a vacancy rate.** The subtraction is available
+and wrong: 9,098 people — 27% of point-in-time headcount — are paid under
+titles absent from the ordinance, so the two sides do not cover the same
+population. That refusal is the most valuable thing on the page. Do not replace
+it with a number because one would look better.
+
+Budget-only keys are split into real positions and non-positions (fringe
+benefits, adjustment pools carrying no headcount). Counting the latter as
+vacancies would repeat the mixed-units error the page is about.
+
+The verifier rebuilds the join from the City's data with its own normalisation
+written as explicit steps rather than the fetcher's regular expression, and
+asserts the raw join still matches zero — the page's central example fails
+loudly if the City ever aligns the two code systems.
+
 The homepage Lab preview states four findings as static text. `verify_corpus.py`
 reads them out of `index.html` and fails if they stop matching the corpus, so
 regenerating the data cannot silently leave the marketing copy wrong. Run it
