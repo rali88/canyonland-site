@@ -1,27 +1,28 @@
 """Build Lab Project 3: reconciling Chicago's enacted budget against payroll.
 
 Projects 1 and 2 each read one source. Most real BI work is not that. It is two
-systems that describe the same thing, disagree, and have no shared key — and the
-question is not "what does the data say" but "which of these is right, and why
-do they differ".
+systems that describe the same thing, disagree, and have no shared key -- and
+the question is not "what does the data say" but "which of these is right, and
+why do they differ".
 
-This joins the City's 2025 Budget Ordinance (positions and salaries) to the
-payroll costing dataset Project 2 already uses. They should reconcile. They do
-not, in four separate ways, and every one of them would produce a confident
-wrong number:
+This joins the City's Budget Ordinance (positions and salaries) to the payroll
+costing dataset Project 2 uses. They should reconcile. They do not, in five
+separate ways, and every one of them would produce a confident wrong number:
 
   * The codes do not match at all. Budget writes department 84 and title 0624;
     payroll writes D84 and T0624. A raw inner join returns zero rows, so a
     dashboard built on it renders an empty chart rather than an error.
   * total_budgeted_unit mixes annual positions with hourly *hours*. Summing the
-    column reports 3.37m budgeted positions for a city that pays about 33,000
-    people.
-  * Counting distinct employees paid across a year is not headcount. Turnover
-    means more people are paid than there are positions.
-  * After all of that the two figures still measure different populations, so
-    the subtraction everyone wants -- budget minus actual equals vacancies --
-    is not available from these datasets. The page says so rather than
-    publishing a number that would be quoted.
+    column reports millions of budgeted positions for a city of about 33,000.
+  * The budget covers a whole year the payroll has not finished. Comparing the
+    two without saying how much of the year has run reports an "underspend"
+    that is nothing but unelapsed time.
+  * Counting distinct employees paid over a span is not headcount.
+  * Unmatched payroll is mostly not unbudgeted people. It is budgeted people
+    charged to a different department from the one that funds them. An earlier
+    version of this page called them "titles that appear in no budget line at
+    all", which was wrong: the join is on a department-title pair, and most of
+    those titles are funded under another department.
 
 Run:  py lab/tools/fetch_chicago_budget.py
 Then: py lab/tools/verify_chicago_budget.py
@@ -40,18 +41,26 @@ import urllib.request
 from datetime import datetime, timezone
 
 DOMAIN = "data.cityofchicago.org"
-BUDGET = "2bp7-w85v"      # 2025 Budget Ordinance - Positions and Salaries
-APPROP = "t59y-fr3k"      # 2025 Budget Ordinance - Appropriations
-PAYROLL = "dawh-m56b"     # Employee Payroll Data (FMPS Payroll Costing)
+BUDGET = "v2t2-vajc"        # 2026 Budget Ordinance - Positions and Salaries
+PRIOR_BUDGET = "2bp7-w85v"  # 2025, for a plan-against-plan comparison
+PAYROLL = "dawh-m56b"       # Employee Payroll Data (FMPS Payroll Costing)
 
-FOCUS_YEAR = "2025"
-POINT_IN_TIME = "24"      # last pay period of the focus year
+# The budget year and the payroll year are deliberately the same. A budget is a
+# plan for a year; comparing it against a different year's outcome answers a
+# question nobody asked.
+FOCUS_YEAR = "2026"
+PRIOR_YEAR = "2025"
 
 # Stated conversions. A budget row measured in hours is not a position, and
 # turning one into the other requires an assumption; this is ours, and it is
 # published on the page rather than buried here.
 HOURS_PER_FTE = 2080.0
 MONTHS_PER_FTE = 12.0
+
+# Payroll charges real staff to a central accounting department; the ordinance
+# funds them in their operating department. Every such row fails the join
+# without anybody being unbudgeted.
+CENTRAL_DEPT_HINT = "FINANCE GENERAL"
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.abspath(os.path.join(HERE, "..", "data"))
@@ -69,7 +78,7 @@ def _get(url):
         "Accept": "application/json",
         "User-Agent": "canyonland-lab/1.0 (+https://www.canyonlandtech.com)",
     })
-    with urllib.request.urlopen(req, timeout=180) as r:
+    with urllib.request.urlopen(req, timeout=300) as r:
         return json.load(r)
 
 
@@ -78,7 +87,7 @@ def soql(dataset, label, params, cache_key=None, publish=True):
     if publish:
         QUERIES.append({"label": label, "dataset": dataset, "params": dict(params)})
     key = cache_key or re.sub(r"[^a-z0-9]+", "-", label.lower())[:60]
-    path = os.path.join(CACHE, "b-" + key + ".json")
+    path = os.path.join(CACHE, "b26-" + key + ".json")
     if os.path.exists(path):
         return json.load(io.open(path, encoding="utf-8"))
     os.makedirs(CACHE, exist_ok=True)
@@ -90,13 +99,12 @@ def soql(dataset, label, params, cache_key=None, publish=True):
             if attempt == 3:
                 raise
             print("    retry %d after %s" % (attempt + 1, exc), file=sys.stderr)
-            time.sleep(3 * (attempt + 1))
+            time.sleep(4 * (attempt + 1))
     io.open(path, "w", encoding="utf-8").write(json.dumps(data))
     return data
 
 
 def paged(dataset, label, params, page=40000, cache_prefix=""):
-    """Same as soql, for results larger than one response."""
     out, offset = [], 0
     base = cache_prefix or re.sub(r"[^a-z0-9]+", "-", label.lower())[:50]
     while True:
@@ -122,25 +130,18 @@ def money(v):
     return round(num(v), 2)
 
 
-# --------------------------------------------------------------------------
-# The normalisation rule, stated once and applied everywhere
-# --------------------------------------------------------------------------
-
 def norm_code(v):
     """Strip a leading system letter and leading zeros.
 
     Payroll writes D84 / T0624; the budget writes 84 / 0624. Neither is wrong;
-    they are different systems. Leading zeros go too, because 0624 and 624 are
-    the same title. Codes containing letters after the first (03A8) keep them.
+    they are different systems. Codes with letters later (03A8) keep them.
     """
     s = str(v or "").strip().upper()
     s = re.sub(r"^[DT]", "", s)
-    s = s.lstrip("0")
-    return s
+    return s.lstrip("0")
 
 
 def fte(units, unit_kind):
-    """Convert a budgeted unit to full-time equivalents under a stated rule."""
     u = (unit_kind or "").strip().lower()
     if u == "annual":
         return units
@@ -151,28 +152,20 @@ def fte(units, unit_kind):
     return 0.0
 
 
-def main():
-    os.makedirs(OUT, exist_ok=True)
-    print("Reconciling budget against payroll for " + FOCUS_YEAR)
-
-    meta_b = _get("https://" + DOMAIN + "/api/views/" + BUDGET + ".json")
-    meta_p = _get("https://" + DOMAIN + "/api/views/" + PAYROLL + ".json")
-    upd = lambda m: datetime.fromtimestamp(
-        m["rowsUpdatedAt"], timezone.utc).date().isoformat()
-
-    # ---- budget side ----------------------------------------------------
-    print("  querying the budget ordinance ...")
-    bud_rows = soql(BUDGET, "Budgeted positions and salaries by department and title", {
+def budget_rows(dataset, label, cache_key):
+    return soql(dataset, label, {
         "$select": "department_code,department_description,title_code,"
                    "title_description,budgeted_unit,"
                    "sum(total_budgeted_unit) as units,"
                    "sum(total_budgeted_amount) as amt",
         "$group": "department_code,department_description,title_code,"
                   "title_description,budgeted_unit",
-        "$limit": "50000"})
+        "$limit": "50000"}, cache_key=cache_key)
 
+
+def summarise_budget(rows):
     by_unit = {}
-    for r in bud_rows:
+    for r in rows:
         k = (r.get("budgeted_unit") or "").strip() or "(blank)"
         e = by_unit.setdefault(k, {"unit": k, "rows": 0, "units": 0.0,
                                    "amount": 0.0, "fte": 0.0})
@@ -183,11 +176,56 @@ def main():
     for e in by_unit.values():
         e["units"] = round(e["units"], 2)
         e["fte"] = round(e["fte"], 2)
-    units_table = sorted(by_unit.values(), key=lambda x: -x["amount"])
+    table = sorted(by_unit.values(), key=lambda x: -x["amount"])
+    return {
+        "byUnit": table,
+        "naiveUnits": round(sum(e["units"] for e in table), 2),
+        "fte": round(sum(e["fte"] for e in table), 2),
+        "amount": round(sum(e["amount"] for e in table), 2),
+    }
 
-    naive_units = round(sum(e["units"] for e in units_table), 2)
-    budget_fte = round(sum(e["fte"] for e in units_table), 2)
-    budget_amount = round(sum(e["amount"] for e in units_table), 2)
+
+def main():
+    os.makedirs(OUT, exist_ok=True)
+    print("Reconciling the " + FOCUS_YEAR + " budget ordinance against payroll")
+
+    meta_b = _get("https://" + DOMAIN + "/api/views/" + BUDGET + ".json")
+    meta_p = _get("https://" + DOMAIN + "/api/views/" + PAYROLL + ".json")
+
+    def upd(m):
+        return datetime.fromtimestamp(
+            m["rowsUpdatedAt"], timezone.utc).date().isoformat()
+
+    # ---- how much of the focus year has actually happened ----------------
+    #
+    # Neither the elapsed periods nor the length of a full year is hardcoded.
+    # A snapshot rebuilt three months from now must not keep claiming six
+    # periods have run.
+    coverage = soql(PAYROLL, "Pay periods present in each payroll year", {
+        "$select": "payroll_year,count(distinct payroll_period) as periods,"
+                   "max(payroll_period) as last,sum(amount) as amt",
+        "$group": "payroll_year", "$order": "payroll_year"},
+        cache_key="coverage")
+    cov = {r["payroll_year"]: r for r in coverage}
+    if FOCUS_YEAR not in cov:
+        print("The payroll dataset carries no rows for " + FOCUS_YEAR + " yet.")
+        return 1
+    periods_elapsed = int(num(cov[FOCUS_YEAR]["periods"]))
+    point_in_time = str(int(num(cov[FOCUS_YEAR]["last"])))
+    periods_in_year = max(int(num(r["periods"])) for r in coverage)
+    year_complete = periods_elapsed >= periods_in_year
+    elapsed_share = periods_elapsed / float(periods_in_year)
+    print("  %s: %d of %d pay periods have run (%.1f%% of the year)"
+          % (FOCUS_YEAR, periods_elapsed, periods_in_year, elapsed_share * 100))
+
+    # ---- budget, this year and last --------------------------------------
+    print("  querying the budget ordinance ...")
+    bud_rows = budget_rows(BUDGET, "Budgeted positions and salaries, " + FOCUS_YEAR,
+                           "bud-focus")
+    budget = summarise_budget(bud_rows)
+    prior_rows = budget_rows(PRIOR_BUDGET, "The previous ordinance, " + PRIOR_YEAR,
+                             "bud-prior")
+    prior = summarise_budget(prior_rows)
 
     # ---- actual side -----------------------------------------------------
     print("  querying payroll actuals ...")
@@ -198,31 +236,40 @@ def main():
                    "sum(amount) as amt",
         "$where": "payroll_year='" + FOCUS_YEAR + "'",
         "$group": "department_code,department,title_code,title",
-        "$limit": "50000"})
+        "$limit": "50000"}, cache_key="act-rows")
 
-    pit_rows = soql(PAYROLL, "Employees paid in the final pay period of "
-                    + FOCUS_YEAR, {
+    pit_rows = soql(PAYROLL, "Employees paid in the latest pay period", {
         "$select": "department_code,department,"
                    "count(distinct employee_dataset_id) as emps",
         "$where": "payroll_year='" + FOCUS_YEAR + "' AND payroll_period='"
-                  + POINT_IN_TIME + "'",
+                  + point_in_time + "'",
         "$group": "department_code,department",
-        "$limit": "5000"},
-        cache_key="pit-dept")
+        "$limit": "5000"}, cache_key="pit-dept")
 
-    annual_head = int(num(soql(PAYROLL, "Distinct employees paid in " + FOCUS_YEAR, {
+    annual_head = int(num(soql(PAYROLL,
+                               "Distinct employees paid so far in " + FOCUS_YEAR, {
         "$select": "count(distinct employee_dataset_id) as e",
         "$where": "payroll_year='" + FOCUS_YEAR + "'"},
         cache_key="annual-head")[0]["e"]))
-    pit_head = int(num(soql(PAYROLL, "Distinct employees paid in the final period", {
+    pit_head = int(num(soql(PAYROLL, "Distinct employees in the latest period", {
         "$select": "count(distinct employee_dataset_id) as e",
         "$where": "payroll_year='" + FOCUS_YEAR + "' AND payroll_period='"
-                  + POINT_IN_TIME + "'"},
+                  + point_in_time + "'"},
         cache_key="pit-head")[0]["e"]))
-    actual_amount = money(soql(PAYROLL, "Total paid in " + FOCUS_YEAR, {
-        "$select": "sum(amount) as amt",
-        "$where": "payroll_year='" + FOCUS_YEAR + "'"},
-        cache_key="actual-total")[0]["amt"])
+    actual_amount = money(cov[FOCUS_YEAR]["amt"])
+
+    # The same definitional gap over a year that did finish, so the page can
+    # say how much of the effect is simply time not yet elapsed.
+    prior_annual = int(num(soql(PAYROLL, "Distinct employees paid in " + PRIOR_YEAR, {
+        "$select": "count(distinct employee_dataset_id) as e",
+        "$where": "payroll_year='" + PRIOR_YEAR + "'"},
+        cache_key="prior-annual")[0]["e"]))
+    prior_pit = int(num(soql(PAYROLL,
+                             "Distinct employees in the last period of " + PRIOR_YEAR, {
+        "$select": "count(distinct employee_dataset_id) as e",
+        "$where": "payroll_year='" + PRIOR_YEAR + "' AND payroll_period='"
+                  + str(periods_in_year) + "'"},
+        cache_key="prior-pit")[0]["e"]))
 
     # ---- the join --------------------------------------------------------
     print("  joining ...")
@@ -255,35 +302,43 @@ def main():
     budget_only = sorted(set(bud_by_key) - set(act_by_key))
     actual_only = sorted(set(act_by_key) - set(bud_by_key))
 
-    # Summing count(distinct employee) across grouped rows counts a person once
-    # per department-title they held, and 2,389 people held more than one in
-    # this year alone. The unmatched population is a headline number supporting
-    # the page's refusal to publish a vacancy rate, so it is counted as a set of
-    # distinct people rather than a sum of group counts.
+    # ---- what the unmatched payroll actually is ---------------------------
+    budgeted_titles = set(k[1] for k in bud_by_key)
+    title_elsewhere = [k for k in actual_only if k[1] in budgeted_titles]
+    title_never = [k for k in actual_only if k[1] not in budgeted_titles]
+    central = [k for k in actual_only
+               if CENTRAL_DEPT_HINT in (act_by_key[k]["dept"] or "").upper()]
+    central_amount = round(sum(act_by_key[k]["amount"] for k in central), 2)
+    unmatched_amount = round(sum(act_by_key[k]["amount"] for k in actual_only), 2)
+
     print("  counting distinct people behind the unmatched keys ...")
-    grid = paged(PAYROLL, "Employee, department and title combinations, " + FOCUS_YEAR, {
+    grid = paged(PAYROLL, "Employee, department and title combinations, "
+                 + FOCUS_YEAR, {
         "$select": "employee_dataset_id,department_code,title_code",
         "$where": "payroll_year='" + FOCUS_YEAR + "'",
         "$group": "employee_dataset_id,department_code,title_code",
         "$order": "employee_dataset_id"}, cache_prefix="grid-year")
-    grid_pit = paged(PAYROLL, "The same combinations in the final pay period", {
+    grid_pit = paged(PAYROLL, "The same combinations in the latest period", {
         "$select": "employee_dataset_id,department_code,title_code",
         "$where": "payroll_year='" + FOCUS_YEAR + "' AND payroll_period='"
-                  + POINT_IN_TIME + "'",
+                  + point_in_time + "'",
         "$group": "employee_dataset_id,department_code,title_code",
         "$order": "employee_dataset_id"}, cache_prefix="grid-pit")
 
-    unmatched = set(actual_only)
-
-    def distinct_on_unmatched(rows):
+    def people_on(rows, keys):
         return set(r["employee_dataset_id"] for r in rows
                    if (norm_code(r.get("department_code")),
-                       norm_code(r.get("title_code"))) in unmatched)
+                       norm_code(r.get("title_code"))) in keys)
 
-    unmatched_people = distinct_on_unmatched(grid)
-    unmatched_people_pit = distinct_on_unmatched(grid_pit)
-    grid_rows = len(grid)
-    grid_people = len(set(r["employee_dataset_id"] for r in grid))
+    unmatched_people = people_on(grid, set(actual_only))
+    unmatched_people_pit = people_on(grid_pit, set(actual_only))
+    central_people = people_on(grid, set(central))
+    # Attribution is a department-level effect. A person booked centrally is
+    # still inside the city-wide headcount, so the city-wide subtraction is not
+    # explained by it -- and quoting an annual attribution count beside a
+    # point-in-time headcount compares two different populations as well.
+    central_people_pit = people_on(grid_pit, set(central))
+    never_people = people_on(grid, set(title_never))
 
     join = {
         "rawBudgetKeys": len(raw_budget),
@@ -297,19 +352,24 @@ def main():
         "actualOnly": len(actual_only),
         "budgetOnlyFte": round(sum(bud_by_key[k]["fte"] for k in budget_only), 1),
         "budgetOnlyAmount": round(sum(bud_by_key[k]["amount"] for k in budget_only), 2),
-        # Distinct people, and separately the sum of group counts, so the gap
-        # between the two is visible rather than hidden.
         "actualOnlyEmployees": len(unmatched_people),
         "actualOnlyEmployeesPointInTime": len(unmatched_people_pit),
         "actualOnlyRowSum": sum(act_by_key[k]["emps"] for k in actual_only),
-        "multiTitleRows": grid_rows,
-        "multiTitlePeople": grid_people,
-        "actualOnlyAmount": round(sum(act_by_key[k]["amount"] for k in actual_only), 2),
-        "sampleRaw": [{"budget": {"dept": r.get("department_code"),
-                                  "title": r.get("title_code")},
-                       "payroll": None} for r in bud_rows[:1]],
+        "actualOnlyAmount": unmatched_amount,
+        "titleBudgetedElsewhere": len(title_elsewhere),
+        "titleNeverBudgeted": len(title_never),
+        "titleNeverBudgetedPeople": len(never_people),
+        "centralKeys": len(central),
+        "centralPeople": len(central_people),
+        "centralPeoplePointInTime": len(central_people_pit),
+        "centralAmount": central_amount,
+        "centralShareOfUnmatchedAmount": (round(central_amount / unmatched_amount * 100, 1)
+                                          if unmatched_amount else 0.0),
+        "centralDepartment": next((act_by_key[k]["dept"] for k in central), ""),
+        "multiTitleRows": len(grid),
+        "multiTitlePeople": len(set(r["employee_dataset_id"] for r in grid)),
     }
-    # A concrete before/after for the page: one key in each notation.
+
     example = sorted(matched)[0] if matched else None
     if example:
         b = next(r for r in bud_rows if nkey(r) == example)
@@ -320,30 +380,27 @@ def main():
             "normalisedDept": example[0], "normalisedTitle": example[1],
             "titleDescription": b.get("title_description") or a.get("title"),
         }
-    # Not every budget-only key is an unfilled job. Many are budget lines that
-    # were never positions at all -- fringe benefits, salary adjustment pools --
-    # and counting them as vacancies would be the same error as counting hours
-    # as positions.
-    zero_fte = [k for k in budget_only if bud_by_key[k]["fte"] < 0.005]
+
+    zero_fte = set(k for k in budget_only if bud_by_key[k]["fte"] < 0.005)
     join["budgetOnlyNonPosition"] = len(zero_fte)
     join["budgetOnlyNonPositionAmount"] = round(
         sum(bud_by_key[k]["amount"] for k in zero_fte), 2)
     join["budgetOnlyRealPositions"] = len(budget_only) - len(zero_fte)
     join["budgetOnlyRealFte"] = round(
-        sum(bud_by_key[k]["fte"] for k in budget_only if k not in set(zero_fte)), 1)
-
+        sum(bud_by_key[k]["fte"] for k in budget_only if k not in zero_fte), 1)
+    join["topActualOnly"] = [
+        {"dept": act_by_key[k]["dept"], "title": act_by_key[k]["title"],
+         "employees": act_by_key[k]["emps"],
+         "amount": round(act_by_key[k]["amount"], 2),
+         "titleBudgetedElsewhere": k[1] in budgeted_titles}
+        for k in sorted(actual_only, key=lambda k: -act_by_key[k]["amount"])[:10]]
     join["topBudgetOnly"] = [
         {"dept": bud_by_key[k]["dept"], "title": bud_by_key[k]["title"],
          "fte": round(bud_by_key[k]["fte"], 1),
          "amount": round(bud_by_key[k]["amount"], 2)}
         for k in sorted(budget_only, key=lambda k: -bud_by_key[k]["amount"])[:10]]
-    join["topActualOnly"] = [
-        {"dept": act_by_key[k]["dept"], "title": act_by_key[k]["title"],
-         "employees": act_by_key[k]["emps"],
-         "amount": round(act_by_key[k]["amount"], 2)}
-        for k in sorted(actual_only, key=lambda k: -act_by_key[k]["amount"])[:10]]
 
-    # ---- department comparison -------------------------------------------
+    # ---- departments -----------------------------------------------------
     dept_budget, dept_actual = {}, {}
     for r in bud_rows:
         d = norm_code(r.get("department_code"))
@@ -355,9 +412,6 @@ def main():
         f = fte(num(r["units"]), r.get("budgeted_unit"))
         e["fte"] += f
         e["amount"] += money(r["amt"])
-        # A budget line with no headcount is not salary. Fringe benefits and
-        # adjustment pools live here, and folding them into a salary column
-        # would repeat the mixed-units error this page is about.
         if f >= 0.005:
             e["positionAmount"] += money(r["amt"])
         else:
@@ -368,15 +422,14 @@ def main():
                                        "annual": 0, "amount": 0.0})
         e["annual"] += int(num(r["emps"]))
         e["amount"] += money(r["amt"])
-    dept_pit = {}
-    for r in pit_rows:
-        dept_pit[norm_code(r.get("department_code"))] = int(num(r["emps"]))
+    dept_pit = {norm_code(r.get("department_code")): int(num(r["emps"]))
+                for r in pit_rows}
 
     departments = []
     for d in sorted(set(dept_budget) | set(dept_actual)):
         b = dept_budget.get(d)
         a = dept_actual.get(d)
-        departments.append({
+        row = {
             "code": d,
             "name": (b or {}).get("name") or (a or {}).get("name") or d,
             "payrollName": (a or {}).get("name") or "",
@@ -387,16 +440,30 @@ def main():
             "annualHeadcount": a["annual"] if a else None,
             "pointInTime": dept_pit.get(d),
             "actualAmount": round(a["amount"], 2) if a else None,
-        })
+        }
+        # Share of the year's funded salary already paid, to be read against the
+        # share of the year that has elapsed. Comparing the raw totals instead
+        # reports an underspend that is only unelapsed time.
+        row["burnShare"] = (round(a["amount"] / b["positionAmount"] * 100, 1)
+                            if b and a and b["positionAmount"] else None)
+        departments.append(row)
     departments.sort(key=lambda x: -(x["actualAmount"] or 0))
 
-    # Department names differ between the two systems more often than not.
     name_mismatch = [d for d in departments
                      if d["budgetFte"] is not None and d["payrollName"]
                      and d["name"].strip().lower()
                      != re.sub(r"^D?\d+\s*-\s*", "", d["payrollName"]).strip().lower()]
 
-    # ---- findings --------------------------------------------------------
+    # City-wide split of the budget into salary for funded positions and lines
+    # carrying no headcount. Both the page and the verifier read these, so they
+    # are totalled here rather than recomputed in two places.
+    budget["positionAmount"] = round(
+        sum(v["positionAmount"] for v in dept_budget.values()), 2)
+    budget["nonPositionAmount"] = round(
+        sum(v["nonPositionAmount"] for v in dept_budget.values()), 2)
+
+    burn_share = round(actual_amount / budget["amount"] * 100, 1)
+
     findings = [
         {
             "id": "no-shared-key",
@@ -412,40 +479,80 @@ def main():
         {
             "id": "mixed-units",
             "title": "The budget mixes positions with hours in one column",
-            "numbers": {"naiveTotal": naive_units, "fte": budget_fte,
-                        "ratio": round(naive_units / budget_fte, 1) if budget_fte else None,
-                        "unitKinds": len(units_table),
-                        "hourly": next((e["units"] for e in units_table
+            "numbers": {"naiveTotal": budget["naiveUnits"], "fte": budget["fte"],
+                        "ratio": (round(budget["naiveUnits"] / budget["fte"], 1)
+                                  if budget["fte"] else None),
+                        "unitKinds": len(budget["byUnit"]),
+                        "hourly": next((e["units"] for e in budget["byUnit"]
                                         if e["unit"].lower() == "hourly"), 0),
-                        "annual": next((e["units"] for e in units_table
+                        "annual": next((e["units"] for e in budget["byUnit"]
                                         if e["unit"].lower() == "annual"), 0)},
             "check": "Group by budgeted_unit before summing total_budgeted_unit.",
         },
         {
+            "id": "partial-year",
+            "title": "The budget covers a year the payroll has not finished",
+            "numbers": {"periodsElapsed": periods_elapsed,
+                        "periodsInYear": periods_in_year,
+                        "elapsedPct": round(elapsed_share * 100, 1),
+                        "budget": budget["amount"],
+                        "paid": actual_amount,
+                        "burnPct": burn_share,
+                        "burnPctPositionsOnly": round(
+                            actual_amount / budget["positionAmount"] * 100, 1)
+                        if budget["positionAmount"] else None,
+                        "positionAmount": budget["positionAmount"],
+                        "nonPositionAmount": budget["nonPositionAmount"],
+                        "naiveUnderspendPct": round(100 - burn_share, 1),
+                        "complete": year_complete},
+            "check": "Count distinct payroll_period in the focus year before "
+                     "comparing any total against a full-year budget. Then check "
+                     "whether the two sides cover the same costs before reading "
+                     "the result as progress.",
+        },
+        {
             "id": "headcount-is-a-choice",
-            "title": "Counting people paid in a year is not headcount",
+            "title": "Counting people paid is not counting headcount",
             "numbers": {"annual": annual_head, "pointInTime": pit_head,
                         "difference": annual_head - pit_head,
                         "pct": round((annual_head - pit_head) / pit_head * 100, 1),
-                        "period": int(POINT_IN_TIME)},
-            "check": "Count distinct employees for the whole year, then for a "
+                        "period": int(point_in_time),
+                        "priorAnnual": prior_annual, "priorPointInTime": prior_pit,
+                        "priorDifference": prior_annual - prior_pit,
+                        "priorPct": round((prior_annual - prior_pit) / prior_pit * 100, 1),
+                        "priorYear": PRIOR_YEAR},
+            "check": "Count distinct employees for the year so far, then for a "
                      "single pay period.",
         },
         {
             "id": "not-a-vacancy-rate",
-            "title": "The subtraction everyone wants is not available here",
-            "numbers": {"budgetFte": budget_fte, "pointInTime": pit_head,
-                        "naiveGap": round(pit_head - budget_fte, 1),
+            "title": "Unmatched payroll is attribution, not absence",
+            "numbers": {"budgetFte": budget["fte"], "pointInTime": pit_head,
+                        "naiveGap": round(pit_head - budget["fte"], 1),
                         "budgetOnly": len(budget_only),
                         "budgetOnlyNonPosition": len(zero_fte),
                         "budgetOnlyRealPositions": len(budget_only) - len(zero_fte),
                         "actualOnly": len(actual_only),
-                        "actualOnlyEmployees": join["actualOnlyEmployees"],
-                        "actualOnlyEmployeesPointInTime":
-                            join["actualOnlyEmployeesPointInTime"],
-                        "actualOnlyAmount": join["actualOnlyAmount"]},
-            "check": "Compare the populations each dataset covers before "
-                     "subtracting one from the other.",
+                        "actualOnlyEmployees": len(unmatched_people),
+                        "actualOnlyEmployeesPointInTime": len(unmatched_people_pit),
+                        "actualOnlyAmount": unmatched_amount,
+                        "titleBudgetedElsewhere": len(title_elsewhere),
+                        "titleNeverBudgeted": len(title_never),
+                        "titleNeverBudgetedPeople": len(never_people),
+                        "centralPeople": len(central_people),
+                        "centralPeoplePointInTime": len(central_people_pit),
+                        "centralAmount": central_amount,
+                        "hourlyUnits": next((e["units"] for e in budget["byUnit"]
+                                             if e["unit"].lower() == "hourly"), 0),
+                        "hourlyFte": next((e["fte"] for e in budget["byUnit"]
+                                           if e["unit"].lower() == "hourly"), 0),
+                        "centralShare": join["centralShareOfUnmatchedAmount"],
+                        "centralDepartment": join["centralDepartment"]},
+            "check": "For each unmatched department-title pair, check whether the "
+                     "title is funded under a different department before calling "
+                     "anyone unbudgeted. Separately: a budgeted FTE is a workload "
+                     "measure, not a person, so it cannot be subtracted from a "
+                     "headcount at any level.",
         },
     ]
 
@@ -462,6 +569,8 @@ def main():
                         "updated": upd(meta_p),
                         "license": (meta_p.get("license") or {}).get("name")
                                    or "See Terms of Use"},
+            "priorBudget": {"id": PRIOR_BUDGET, "year": PRIOR_YEAR,
+                            "landing": "https://" + DOMAIN + "/d/" + PRIOR_BUDGET},
             "portal": "https://" + DOMAIN,
             "licenseUrl": "https://www.chicago.gov/city/en/narr/foia/data_disclaimer.html",
             "attribution": "City of Chicago",
@@ -472,7 +581,12 @@ def main():
         "queries": QUERIES,
         "rules": {
             "focusYear": FOCUS_YEAR,
-            "pointInTimePeriod": int(POINT_IN_TIME),
+            "priorYear": PRIOR_YEAR,
+            "pointInTimePeriod": int(point_in_time),
+            "periodsElapsed": periods_elapsed,
+            "periodsInYear": periods_in_year,
+            "yearComplete": year_complete,
+            "elapsedPct": round(elapsed_share * 100, 1),
             "normalisation": "Strip a leading D or T, then leading zeros, from "
                              "department and title codes on both sides.",
             "fteRule": ("Annual units count as one FTE each; hourly units are "
@@ -481,14 +595,10 @@ def main():
             "hoursPerFte": HOURS_PER_FTE,
         },
         "join": join,
-        "budget": {"byUnit": units_table, "naiveUnits": naive_units,
-                   "fte": budget_fte, "amount": budget_amount,
-                   "positionAmount": round(sum(
-                       v["positionAmount"] for v in dept_budget.values()), 2),
-                   "nonPositionAmount": round(sum(
-                       v["nonPositionAmount"] for v in dept_budget.values()), 2)},
+        "budget": budget,
+        "priorBudget": prior,
         "actual": {"annualHeadcount": annual_head, "pointInTime": pit_head,
-                   "amount": actual_amount},
+                   "amount": actual_amount, "burnPct": burn_share},
         "departments": departments,
         "nameMismatches": len(name_mismatch),
         "findings": findings,
@@ -498,13 +608,15 @@ def main():
         "rawMatches": raw_matches,
         "matched": len(matched),
         "matchRate": join["matchRate"],
-        "unitKinds": len(units_table),
-        "budgetFte": budget_fte,
+        "unitKinds": len(budget["byUnit"]),
+        "budgetFte": budget["fte"],
         "annualHeadcount": annual_head,
         "pointInTime": pit_head,
         "departments": len(departments),
         "findings": len(findings),
-        "actualOnlyEmployees": join["actualOnlyEmployees"],
+        "actualOnlyEmployees": len(unmatched_people),
+        "periodsElapsed": periods_elapsed,
+        "burnPct": burn_share,
     }
 
     path = os.path.join(OUT, "chicago-budget.json")
@@ -514,10 +626,19 @@ def main():
     print("  wrote %s  (%.1f KB)" % (path, os.path.getsize(path) / 1024.0))
     print("  raw join matched %d of %d budget keys" % (raw_matches, len(raw_budget)))
     print("  normalised join matched %d (%.1f%%)" % (len(matched), join["matchRate"]))
-    print("  budget: %s naive units -> %s FTE" % (
-        format(naive_units, ",.0f"), format(budget_fte, ",.0f")))
-    print("  paid: %s across the year, %s in period %s" % (
-        format(annual_head, ","), format(pit_head, ","), POINT_IN_TIME))
+    print("  budget %s: %s naive units -> %s FTE  ($%s)" % (
+        FOCUS_YEAR, format(budget["naiveUnits"], ",.0f"),
+        format(budget["fte"], ",.0f"), format(budget["amount"], ",.0f")))
+    print("  budget %s: %s FTE ($%s)" % (
+        PRIOR_YEAR, format(prior["fte"], ",.0f"), format(prior["amount"], ",.0f")))
+    print("  %.0f%% of the year elapsed, %.1f%% of budget paid" % (
+        elapsed_share * 100, burn_share))
+    print("  unmatched payroll: %s people; %s charged to %s (%.0f%% of the money)" % (
+        format(len(unmatched_people), ","), format(len(central_people), ","),
+        join["centralDepartment"] or "a central account",
+        join["centralShareOfUnmatchedAmount"]))
+    print("  titles genuinely never budgeted: %d keys, %s people" % (
+        len(title_never), format(len(never_people), ",")))
     return 0
 
 

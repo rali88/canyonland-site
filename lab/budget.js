@@ -1,9 +1,9 @@
 /* Project 3 of the BI Lifecycle Lab: reconciling two sources that disagree.
  *
  * Rendered from lab/data/chicago-budget.json, built by the pipeline in
- * lab/tools/. As in Project 2 the prose is written and the numbers inside it
- * are computed, so a snapshot rebuilt against refreshed City data either keeps
- * the wording true or fails the self-check.
+ * lab/tools/. The prose is written and the numbers inside it are computed, so
+ * a snapshot rebuilt against a new budget ordinance either keeps the wording
+ * true or fails the self-check.
  *
  * No language model. No network call at run time.
  */
@@ -24,8 +24,8 @@
     return n;
   }
 
-  // Values here come from a City-published snapshot. None contains markup
-  // today; a rebuild is not a promise that none ever will.
+  // Values come from a City-published snapshot. None contains markup today; a
+  // rebuild is not a promise that none ever will.
   function esc(v) {
     return String(v).replace(/[&<>"']/g, function (c) {
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;',
@@ -49,9 +49,11 @@
   }
 
   function count(v) { return Number(v).toLocaleString('en-US'); }
-  function dec(v, p) { return Number(v).toLocaleString('en-US',
-    { minimumFractionDigits: p === undefined ? 0 : p,
-      maximumFractionDigits: p === undefined ? 0 : p }); }
+  function dec(v, p) {
+    var d = p === undefined ? 0 : p;
+    return Number(v).toLocaleString('en-US',
+      { minimumFractionDigits: d, maximumFractionDigits: d });
+  }
   function pct(v) { return Number(v).toFixed(1) + '%'; }
 
   function niceName(s) {
@@ -132,6 +134,13 @@
     return p;
   }
 
+  function note(host, html) {
+    var p = el('p', 'lab-note');
+    p.innerHTML = html;
+    host.appendChild(p);
+    return p;
+  }
+
   function findingBy(model, id) {
     return model.findings.filter(function (f) { return f.id === id; })[0];
   }
@@ -150,7 +159,9 @@
       pointInTime: model.actual.pointInTime,
       departments: model.departments.length,
       findings: model.findings.length,
-      actualOnlyEmployees: model.join.actualOnlyEmployees
+      actualOnlyEmployees: model.join.actualOnlyEmployees,
+      periodsElapsed: model.rules.periodsElapsed,
+      burnPct: model.actual.burnPct
     };
     var bad = [];
     Object.keys(e).forEach(function (k) {
@@ -161,7 +172,7 @@
     });
     // The claim the whole page rests on, checked rather than assumed.
     if (model.join.rawMatches !== 0 && model.join.matched > 0) {
-      bad.push('the raw join is no longer empty, so the page’s central ' +
+      bad.push('the raw join is no longer empty, so this page’s central ' +
         'example no longer holds');
     }
     return bad;
@@ -174,7 +185,8 @@
     if (!host) return;
     var j = model.join;
     var mixed = findingBy(model, 'mixed-units').numbers;
-    var head = findingBy(model, 'headcount-is-a-choice').numbers;
+    var part = findingBy(model, 'partial-year').numbers;
+    var vac = findingBy(model, 'not-a-vacancy-rate').numbers;
     var strip = el('div', 'lab-summary-strip');
 
     [
@@ -182,7 +194,8 @@
         l: 'rows the obvious join matches', finding: true },
       { v: pct(j.matchRate), l: 'matched after one stated rule', finding: false },
       { v: '×' + mixed.ratio, l: 'overcount from one mixed-unit column', finding: true },
-      { v: count(head.difference), l: 'people between two headcounts', finding: true }
+      { v: pct(part.naiveUnderspendPct),
+        l: 'apparent underspend that is only unelapsed time', finding: true }
     ].forEach(function (i) {
       var item = el('div', 'lab-summary-item' + (i.finding ? ' is-finding' : ''));
       item.appendChild(el('span', 'lab-summary-value', i.v));
@@ -192,14 +205,16 @@
 
     host.innerHTML = '';
     host.appendChild(strip);
-    var note = el('p', 'lab-summary-note');
-    note.innerHTML = 'Three of these are failures of the obvious method. Joining the two ' +
+    var n = el('p', 'lab-summary-note');
+    n.innerHTML = 'Three of these are failures of the obvious method. Joining the two ' +
       'datasets on their published keys matches ' + strong('nothing') + '; summing the ' +
       'budget’s unit column reports ' + strong(count(mixed.naiveTotal)) +
-      ' positions for a city that pays about ' + strong(count(head.pointInTime)) +
-      ' people; and “headcount” means two numbers ' +
-      strong(count(head.difference)) + ' apart depending on which one you meant.';
-    host.appendChild(note);
+      ' positions for a city that pays about ' + strong(count(vac.pointInTime)) +
+      ' people; and comparing a full-year budget against ' +
+      strong(part.periodsElapsed + ' of ' + part.periodsInYear) + ' pay periods shows a ' +
+      strong(pct(part.naiveUnderspendPct)) + ' underspend that is almost entirely the ' +
+      'part of the year that has not happened yet.';
+    host.appendChild(n);
   }
 
   // ------------------------------------------------------------ provenance
@@ -208,7 +223,7 @@
     var host = document.getElementById('ba-provenance');
     if (!host) return;
     host.innerHTML = '';
-    var s = model.source;
+    var s = model.source, r = model.rules;
     var link = function (href, text) {
       var a = el('a', null, text);
       a.href = href; a.target = '_blank'; a.rel = 'noopener';
@@ -219,15 +234,20 @@
       ['Dataset', link(s.budget.landing, s.budget.dataset),
         link(s.payroll.landing, s.payroll.dataset)],
       ['Identifier', s.budget.id, s.payroll.id],
-      ['Describes', 'Positions the ordinance funds', 'Money that actually moved'],
+      ['Describes', 'Positions the ordinance funds for ' + r.focusYear,
+        'Money that actually moved'],
+      ['Covers', 'The whole of ' + r.focusYear,
+        r.periodsElapsed + ' of ' + r.periodsInYear + ' pay periods in ' + r.focusYear],
       ['Last updated at source', s.budget.updated, s.payroll.updated],
       ['Licence / terms', s.budget.license, s.payroll.license]
-    ]));
+    ], { flag: function (i) { return i === 3 && !r.yearComplete; } }));
 
     host.appendChild(table(['Field', 'Value'], [
       ['Publisher', s.publisher],
       ['Required attribution', s.attribution],
-      ['Focus year', s.focusYear],
+      ['Focus year', r.focusYear],
+      ['Previous ordinance, for comparison',
+        link(s.priorBudget.landing, s.priorBudget.year + ' ordinance')],
       ['Retrieved by us', s.retrieved],
       ['Live or cached', s.mode]
     ]));
@@ -237,8 +257,13 @@
     [
       'A cached snapshot taken on ' + s.retrieved + '. The City refreshes both ' +
         'sources on their own schedules, so these figures will drift.',
-      'The budget side is the enacted ordinance for ' + s.focusYear +
+      'The budget side is the enacted ordinance for ' + r.focusYear +
         ', not a mid-year amended budget. Amendments during the year are not reflected.',
+      r.yearComplete
+        ? 'The payroll year is complete.'
+        : 'The payroll year is ' + r.periodsElapsed + ' of ' + r.periodsInYear +
+          ' periods in. Every dollar comparison on this page is expressed against ' +
+          'elapsed time rather than as a raw total.',
       'Payroll amounts are cash paid in a period. Pension, healthcare and other ' +
         'employer costs are not in that dataset.',
       'Neither dataset carries an employee name in anything we selected, and no ' +
@@ -264,24 +289,27 @@
     var host = document.getElementById('ba-extract');
     if (!host) return;
     host.innerHTML = '';
-    var j = model.join, b = model.budget, a = model.actual;
+    var j = model.join, b = model.budget, a = model.actual, r = model.rules;
 
-    host.appendChild(table(['', 'Budget ordinance', 'Payroll actuals'], [
-      ['Grain of one row', 'A funded position line', 'One pay element for one employee in one period'],
+    host.appendChild(table(['', 'Budget ordinance ' + r.focusYear, 'Payroll actuals'], [
+      ['Grain of one row', 'A funded position line',
+        'One pay element for one employee in one period'],
       ['Rows taken', count(model.source.budget.rows) + ' grouped lines',
         count(j.rawActualKeys) + ' department-title combinations'],
-      ['Money', big(b.amount) + ' budgeted', big(a.amount) + ' paid'],
+      ['Period covered', 'The whole year',
+        r.periodsElapsed + ' of ' + r.periodsInYear + ' periods'],
+      ['Money', big(b.amount) + ' budgeted', big(a.amount) + ' paid so far'],
       ['People', dec(b.fte, 0) + ' FTE funded',
-        count(a.annualHeadcount) + ' paid at some point in the year'],
+        count(a.pointInTime) + ' paid in the latest period'],
       ['Department key', 'department_code, e.g. ' + (j.example ? j.example.budgetDept : ''),
         'department_code, e.g. ' + (j.example ? j.example.payrollDept : '')],
       ['Title key', 'title_code, e.g. ' + (j.example ? j.example.budgetTitle : ''),
         'title_code, e.g. ' + (j.example ? j.example.payrollTitle : '')]
-    ], { flag: function (i) { return i >= 4; } }));
+    ], { flag: function (i) { return i >= 5; } }));
 
     paragraph(host, 'The last two rows are the whole problem, and they are visible in the ' +
-      'first ten seconds of looking. Both datasets have a <code>department_code</code> and a ' +
-      '<code>title_code</code>. Neither writes them the same way. Nothing in either ' +
+      'first ten seconds of looking. Both datasets have a <code>department_code</code> and ' +
+      'a <code>title_code</code>. Neither writes them the same way, and nothing in either ' +
       'dataset’s documentation says so.');
     attachQuery(host, model, 'Budgeted positions and salaries');
   }
@@ -292,8 +320,8 @@
     var host = document.getElementById('ba-land');
     if (!host) return;
     host.innerHTML = '';
-    var j = model.join;
-    var f = findingBy(model, 'no-shared-key');
+    var j = model.join, f = findingBy(model, 'no-shared-key');
+    var vac = findingBy(model, 'not-a-vacancy-rate').numbers;
 
     host.appendChild(el('h3', null, 'Finding: the obvious join matches nothing'));
     paragraph(host, 'Joining ' + strong(count(j.rawBudgetKeys)) + ' budget keys to ' +
@@ -302,8 +330,8 @@
       '. Not few. None.');
     paragraph(host, 'This is the dangerous kind of failure, because an inner join that ' +
       'matches nothing is not an error. It is an empty result set. The report renders, the ' +
-      'chart is blank or shows a zero, and whether anyone notices depends on whether a blank ' +
-      'chart looks wrong to the person reviewing it.');
+      'chart is blank or shows a zero, and whether anyone notices depends on whether a ' +
+      'blank chart looks wrong to the person reviewing it.');
 
     if (j.example) {
       host.appendChild(el('p', 'lab-caption', 'The same job, in both systems'));
@@ -321,8 +349,8 @@
     paragraph(host, '<em>' + esc(model.rules.normalisation) + '</em>');
     paragraph(host, 'That single rule takes the match from ' + strong(j.rawMatches) +
       ' to ' + strong(count(j.matched)) + ' of ' + strong(count(j.normalisedBudgetKeys)) +
-      ' budget keys — ' + strong(pct(j.matchRate)) + '. It is three lines of code. Knowing ' +
-      'it was needed is the part that is not.');
+      ' budget keys — ' + strong(pct(j.matchRate)) + '. It is three lines of code. ' +
+      'Knowing it was needed is the part that is not.');
 
     host.appendChild(bars([
       { label: 'Joined as published', value: Math.max(j.rawMatches, 0.001),
@@ -330,29 +358,44 @@
       { label: 'Joined after the rule', value: j.matched, display: count(j.matched) }
     ]));
 
-    host.appendChild(el('h3', null, 'What still does not match, and why that matters'));
-    paragraph(host, strong(count(j.actualOnly)) + ' department-title combinations appear in ' +
-      'the payroll and in no budget line — ' + strong(count(j.actualOnlyEmployees)) +
-      ' distinct people paid ' + strong(big(j.actualOnlyAmount)) + '. Anyone reporting budget ' +
-      'against actual by title, having got the join working, would silently drop all of them.');
-    host.appendChild(el('p', 'lab-note', 'Counted as people rather than as rows: ' +
-      count(j.actualOnlyRowSum) + ' would be the figure if each department-title a person ' +
-      'held were counted separately, and ' + count(j.multiTitlePeople) + ' people account ' +
-      'for ' + count(j.multiTitleRows) + ' such combinations across the year.'));
-    host.appendChild(el('p', 'lab-caption', 'Paid, but matching no budgeted title'));
-    host.appendChild(table(['Title', 'Department', 'People', 'Paid'],
+    // ---- the correction ---------------------------------------------------
+    host.appendChild(el('h3', null,
+      'What is left over, and what it is not'));
+    paragraph(host, 'An earlier version of this page called the unmatched payroll “titles ' +
+      'that appear in no budget line at all”. That was wrong, and the way it was wrong is ' +
+      'worth more than the original claim. The join is on a department-title <em>pair</em>. ' +
+      'Of the ' + strong(count(j.actualOnly)) + ' pairs with no budget match, ' +
+      strong(count(j.titleBudgetedElsewhere)) + ' carry a title that <em>is</em> funded — ' +
+      'just under a different department.');
+    paragraph(host, 'Most of that is one department. ' +
+      strong(count(j.centralPeople)) + ' of the ' + strong(count(j.actualOnlyEmployees)) +
+      ' unmatched people are charged to ' + strong(niceName(j.centralDepartment)) +
+      ', a central accounting department the ordinance does not carry as an operating ' +
+      'one. They account for ' + strong(pct(j.centralShareOfUnmatchedAmount)) +
+      ' of the unmatched money. These are not unbudgeted hires. They are budgeted staff ' +
+      'whose cost is booked centrally, and calling them unbudgeted would have been a ' +
+      'confident, wrong, and quotable claim about a real city.');
+    paragraph(host, 'Once attribution is separated out, the genuinely unbudgeted residue is ' +
+      strong(count(j.titleNeverBudgeted) + ' pairs') + ' covering ' +
+      strong(count(j.titleNeverBudgetedPeople) + ' people') + ' — a real finding, and two ' +
+      'orders of magnitude smaller than the number the naive reading produces.');
+
+    host.appendChild(el('p', 'lab-caption', 'Largest unmatched pairs'));
+    host.appendChild(table(['Title', 'Department', 'People', 'Paid', 'Title funded elsewhere?'],
       j.topActualOnly.slice(0, 6).map(function (t) {
-        return [niceName(t.title), niceName(t.dept), count(t.employees), big(t.amount)];
-      })));
+        return [niceName(t.title), niceName(t.dept), count(t.employees), big(t.amount),
+          t.titleBudgetedElsewhere ? 'yes — attribution' : 'no — genuinely unbudgeted'];
+      }),
+      { flag: function (i) { return !j.topActualOnly[i].titleBudgetedElsewhere; } }));
 
     paragraph(host, 'In the other direction ' + strong(count(j.budgetOnly)) + ' budget keys ' +
-      'have no payroll match — but ' + strong(count(j.budgetOnlyNonPosition)) + ' of them are ' +
-      'not positions at all. They are lines like fringe benefits and salary adjustment pools, ' +
-      'carrying ' + strong(big(j.budgetOnlyNonPositionAmount)) + ' and zero headcount. ' +
-      'Counting those as unfilled jobs would be the same mistake as counting hours as people. ' +
-      'That leaves ' + strong(count(j.budgetOnlyRealPositions)) + ' funded titles, ' +
+      'have no payroll match, and ' + strong(count(j.budgetOnlyNonPosition)) + ' of those ' +
+      'are not positions at all — fringe benefits and salary adjustment pools carrying ' +
+      strong(big(j.budgetOnlyNonPositionAmount)) + ' and zero headcount. That leaves ' +
+      strong(count(j.budgetOnlyRealPositions)) + ' funded titles, ' +
       strong(dec(j.budgetOnlyRealFte, 1) + ' FTE') + ', with nobody paid against them.');
-    host.appendChild(el('p', 'lab-note', 'How to check: ' + f.check));
+    note(host, 'How to check: ' + esc(vac.centralDepartment ? findingBy(model,
+      'not-a-vacancy-rate').check : f.check));
   }
 
   // ----------------------------------------------------------------- Model
@@ -363,42 +406,67 @@
     host.innerHTML = '';
     var mixed = findingBy(model, 'mixed-units');
     var head = findingBy(model, 'headcount-is-a-choice');
-    var b = model.budget;
+    var part = findingBy(model, 'partial-year');
+    var b = model.budget, r = model.rules;
 
     host.appendChild(el('h3', null, 'Finding: one column, three different units'));
-    paragraph(host, '<code>total_budgeted_unit</code> holds a number whose meaning depends on ' +
-      '<code>budgeted_unit</code> in the same row. Summed without looking, it reports ' +
+    paragraph(host, '<code>total_budgeted_unit</code> holds a number whose meaning depends ' +
+      'on <code>budgeted_unit</code> in the same row. Summed without looking, it reports ' +
       strong(count(mixed.numbers.naiveTotal)) + ' budgeted positions for a city that pays ' +
-      'around ' + strong(count(head.numbers.pointInTime)) + ' people — an overcount of ' +
+      'around ' + strong(count(model.actual.pointInTime)) + ' people — an overcount of ' +
       strong('×' + mixed.numbers.ratio) + ', because ' +
-      strong(count(mixed.numbers.hourly)) + ' of those "positions" are hours.');
+      strong(count(mixed.numbers.hourly)) + ' of those “positions” are hours.');
 
-    host.appendChild(table(['Budgeted unit', 'Rows', 'Units as published', 'FTE under our rule', 'Budgeted'],
+    host.appendChild(table(['Budgeted unit', 'Rows', 'Units as published',
+                            'FTE under our rule', 'Budgeted'],
       b.byUnit.map(function (u) {
         return [u.unit, count(u.rows), count(u.units), dec(u.fte, 0), big(u.amount)];
       }),
       { flag: function (i) { return b.byUnit[i].unit.toLowerCase() === 'hourly'; } }));
 
     host.appendChild(el('p', 'lab-caption', 'The conversion, stated'));
-    paragraph(host, '<em>' + esc(model.rules.fteRule) + '</em>');
-    host.appendChild(el('p', 'lab-note', 'The ' + count(model.rules.hoursPerFte) +
-      '-hour year is an assumption, not a fact in the data. It is ours, it is arguable, and ' +
-      'every FTE figure on this page depends on it — which is why it is on the page rather ' +
-      'than in the code.'));
+    paragraph(host, '<em>' + esc(r.fteRule) + '</em>');
+    note(host, 'The ' + count(r.hoursPerFte) + '-hour year is an assumption, not a fact ' +
+      'in the data. It is ours, it is arguable, and every FTE figure on this page depends ' +
+      'on it — which is why it is on the page rather than in the code.');
 
-    host.appendChild(el('h3', null, 'Finding: "headcount" is two different numbers'));
-    paragraph(host, strong(count(head.numbers.annual)) + ' distinct people were paid by the ' +
-      'City during ' + strong(model.rules.focusYear) + '. In the final pay period of that ' +
-      'year, ' + strong(count(head.numbers.pointInTime)) + ' were. The gap is ' +
+    host.appendChild(el('h3', null, 'Finding: the year is not over'));
+    paragraph(host, 'The ordinance funds ' + strong(r.focusYear) + ' in full. The payroll ' +
+      'has run ' + strong(part.numbers.periodsElapsed + ' of ' + part.numbers.periodsInYear) +
+      ' pay periods, or ' + strong(pct(part.numbers.elapsedPct)) + ' of the year. Set the ' +
+      'two totals beside each other and the City appears to be ' +
+      strong(pct(part.numbers.naiveUnderspendPct)) + ' under budget.');
+    paragraph(host, 'It is not. ' + strong(big(part.numbers.paid)) + ' of ' +
+      strong(big(part.numbers.budget)) + ' is ' + strong(pct(part.numbers.burnPct)) +
+      ' of the budget paid against ' + strong(pct(part.numbers.elapsedPct)) +
+      ' of the year elapsed. That framing removes the elapsed-time error without making ' +
+      'the two sides like for like: the payroll includes overtime the position lines do ' +
+      'not fund, and the ordinance carries ' +
+      strong(big(part.numbers.nonPositionAmount)) + ' that never moves through payroll. ' +
+      'Against position lines alone it is ' +
+      strong(pct(part.numbers.burnPctPositionsOnly)) + '. A flag, not a verdict.');
+    host.appendChild(bars([
+      { label: 'Share of the year elapsed', value: part.numbers.elapsedPct,
+        display: pct(part.numbers.elapsedPct) },
+      { label: 'Share of the budget paid', value: part.numbers.burnPct,
+        display: pct(part.numbers.burnPct), flagged: true }
+    ]));
+    note(host, 'How to check: ' + esc(part.check));
+
+    host.appendChild(el('h3', null, 'Finding: “headcount” is two different numbers'));
+    paragraph(host, strong(count(head.numbers.annual)) + ' distinct people have been paid ' +
+      'so far in ' + strong(r.focusYear) + '. In the latest pay period, ' +
+      strong(count(head.numbers.pointInTime)) + ' were. The gap is ' +
       strong(count(head.numbers.difference)) + ' people, or ' +
-      strong(pct(head.numbers.pct)) + ' — and it is not an error in either figure. It is ' +
-      'turnover: leavers, joiners, and seasonal staff who were each paid at some point ' +
-      'without all being there at once.');
-    paragraph(host, 'Compared against a budget that funds positions rather than people, the ' +
-      'annual figure is the wrong one. Every comparison below uses the point-in-time count ' +
-      'from period ' + strong(model.rules.pointInTimePeriod) + '.');
-    host.appendChild(el('p', 'lab-note', 'How to check: ' + head.check));
-    attachQuery(host, model, 'final pay period');
+      strong(pct(head.numbers.pct)) + ', and it is not an error in either figure. It is ' +
+      'turnover.');
+    paragraph(host, 'The gap grows with the window. Over the last complete year, ' +
+      strong(r.priorYear) + ', the same two counts differed by ' +
+      strong(count(head.numbers.priorDifference)) + ' people — ' +
+      strong(pct(head.numbers.priorPct)) + '. Against a budget that funds positions rather ' +
+      'than people, the point-in-time count is the right one, and every comparison below ' +
+      'uses period ' + strong(r.pointInTimePeriod) + '.');
+    attachQuery(host, model, 'latest pay period');
   }
 
   // ----------------------------------------------------------------- Build
@@ -407,47 +475,62 @@
     var host = document.getElementById('ba-build');
     if (!host) return;
     host.innerHTML = '';
+    var r = model.rules;
     var depts = model.departments.filter(function (d) {
       return d.budgetFte !== null && d.pointInTime;
     });
 
     host.appendChild(el('p', 'lab-caption',
-      'Budgeted against actual, ' + model.rules.focusYear));
+      'Budgeted against paid so far, ' + r.focusYear));
     host.appendChild(table(
-      ['Department', 'Budgeted FTE', 'Paid in period ' + model.rules.pointInTimePeriod,
-       'Budgeted for positions', 'Other budget lines', 'Paid'],
+      ['Department', 'Budgeted FTE', 'Paid in period ' + r.pointInTimePeriod,
+       'Budgeted for positions', 'Other budget lines', 'Paid so far', 'Spent'],
       depts.slice(0, 14).map(function (d) {
         return [niceName(d.name), dec(d.budgetFte, 0), count(d.pointInTime),
           big(d.budgetPositionAmount), big(d.budgetNonPositionAmount),
-          big(d.actualAmount)];
+          big(d.actualAmount), d.burnShare === null ? '—' : pct(d.burnShare)];
       })));
-    var note = el('p', 'lab-note');
-    note.innerHTML = 'The budget is split into two columns because it holds two different ' +
-      'things. ' + strong(big(model.budget.nonPositionAmount)) + ' city-wide sits in lines ' +
-      'carrying no headcount at all — fringe benefits, salary adjustment pools — and folding ' +
-      'those into a salary figure would repeat exactly the mixed-units error above. Paid ' +
-      'still exceeds budgeted positions in most departments, which is expected rather than ' +
-      'alarming: payroll includes overtime and staff funded outside the ordinance. The ' +
-      'columns sit side by side because they are adjacent, not because they are comparable.';
-    host.appendChild(note);
+    note(host, 'The last column is the only one that can be read straight down: it is the ' +
+      'share of each department’s funded salary already paid, against ' +
+      strong(pct(r.elapsedPct)) + ' of the year elapsed. The two money columns before it ' +
+      'are not comparable to each other — one is a full-year plan, the other is ' +
+      r.periodsElapsed + ' periods of cash including overtime. ' +
+      strong(big(model.budget.nonPositionAmount)) + ' city-wide sits in lines carrying no ' +
+      'headcount at all, which is why it has a column of its own rather than being folded ' +
+      'into salary.');
     attachQuery(host, model, 'Employees paid and dollars');
+
+    host.appendChild(el('h3', null, 'What changed in the plan'));
+    var b = model.budget, p = model.priorBudget;
+    host.appendChild(table(['', r.priorYear + ' ordinance', r.focusYear + ' ordinance',
+                            'Change'], [
+      ['Funded FTE', dec(p.fte, 0), dec(b.fte, 0),
+        dec(b.fte - p.fte, 0) + ' (' + pct((b.fte - p.fte) / p.fte * 100) + ')'],
+      ['Budgeted', big(p.amount), big(b.amount),
+        big(b.amount - p.amount) + ' (' + pct((b.amount - p.amount) / p.amount * 100) + ')']
+    ]));
+    paragraph(host, 'This is the one comparison on the page that needs no caveats at all. ' +
+      'Both sides are complete enacted ordinances in the same units from the same ' +
+      'publisher, so plan against plan is a straight subtraction — funded positions ' +
+      (b.fte < p.fte ? 'fell' : 'rose') + ' while the money ' +
+      (b.amount > p.amount ? 'rose' : 'fell') + '.');
 
     if (model.nameMismatches) {
       host.appendChild(el('h3', null, 'A smaller trap: the names disagree too'));
       paragraph(host, strong(model.nameMismatches) + ' of ' +
         strong(count(model.departments.length)) + ' departments carry a different name in ' +
-        'each dataset for the same code. Joining on the department name instead of the code ' +
-        'would have quietly lost them — which is the argument for joining on codes and ' +
+        'each dataset for the same code. Joining on the department name instead of the ' +
+        'code would have quietly lost them — the argument for joining on codes and ' +
         'treating names as labels, not keys.');
     }
 
     var bridge = el('div', 'lab-bridge');
     bridge.appendChild(el('p', 'lab-caption', 'What this stage cost'));
     var bp = el('p');
-    bp.innerHTML = 'Three rules — how to normalise a code, what an FTE is, which headcount ' +
-      'counts — and the comparison becomes possible. None of the three is in either ' +
-      'dataset’s documentation, and all three change the answer. ' +
-      '<a href="/#contact">Tell us what’s stuck.</a>';
+    bp.innerHTML = 'Four rules — how to normalise a code, what an FTE is, which headcount ' +
+      'counts, and how much of the year has happened — and the comparison becomes ' +
+      'possible. None is in either dataset’s documentation, and all four change the ' +
+      'answer. <a href="/#contact">Tell us what’s stuck.</a>';
     bridge.appendChild(bp);
     host.appendChild(bridge);
   }
@@ -458,59 +541,95 @@
     var host = document.getElementById('ba-ask');
     if (!host) return;
     host.innerHTML = '';
-    var j = model.join, b = model.budget, a = model.actual;
+    var j = model.join, b = model.budget, a = model.actual, r = model.rules;
     var mixed = findingBy(model, 'mixed-units').numbers;
     var head = findingBy(model, 'headcount-is-a-choice').numbers;
+    var part = findingBy(model, 'partial-year').numbers;
     var vac = findingBy(model, 'not-a-vacancy-rate').numbers;
     var depts = model.departments.filter(function (d) {
       return d.budgetFte !== null && d.pointInTime;
     });
-    // Ranked by the quantity the answer names. Sorting by payroll size and
-    // calling the result the largest gap happens to agree on this snapshot and
-    // would not on the next one.
     var gapOf = function (d) {
       return Math.abs((d.actualAmount || 0) - (d.budgetPositionAmount || 0));
     };
     var byGap = depts.slice().sort(function (x, y) { return gapOf(y) - gapOf(x); });
-    var biggest = byGap[0];
     var bySize = depts.slice().sort(function (x, y) {
       return y.actualAmount - x.actualAmount; })[0];
+    var biggest = byGap[0];
+    var hottest = depts.slice().filter(function (d) { return d.burnShare !== null; })
+      .sort(function (x, y) { return y.burnShare - x.burnShare; })[0];
 
     var qs = [
       {
         q: 'What is the City’s vacancy rate?',
         body: [
-          '<strong>This data cannot tell you, and the number it appears to give is wrong.</strong> ' +
-          'The subtraction is right there: ' + strong(dec(b.fte, 0)) + ' budgeted FTE against ' +
-          strong(count(a.pointInTime)) + ' people paid in the final period, which looks like ' +
-          strong(dec(Math.abs(vac.naiveGap), 0)) + ' more staff than positions.',
-          'It is not a vacancy rate because the two sides do not cover the same population. ' +
-          strong(count(j.actualOnlyEmployees)) + ' distinct people were paid during the year ' +
-          'under titles that appear in no budget line at all, ' +
-          strong(count(j.actualOnlyEmployeesPointInTime)) + ' of them in the same final ' +
-          'period the headcount above uses — ' +
-          strong(pct(j.actualOnlyEmployeesPointInTime / a.pointInTime * 100)) +
-          ' of the workforce, carrying ' + strong(big(j.actualOnlyAmount)) + ' of payroll ' +
-          'outside the ordinance’s title system. Until that is reconciled or explained by ' +
-          'someone inside the City, any vacancy figure derived here is a subtraction between ' +
-          'two different things.',
+          '<strong>This data cannot tell you.</strong> The subtraction looks available: ' +
+          strong(dec(b.fte, 0)) + ' budgeted FTE against ' + strong(count(a.pointInTime)) +
+          ' people paid in the latest period. Those are not the same kind of thing, ' +
+          'so the difference between them is not a vacancy.',
+          '<strong>A full-time equivalent measures work, not people.</strong> ' +
+          strong(count(vac.hourlyUnits)) + ' budgeted hours become ' +
+          strong(dec(vac.hourlyFte, 0)) + ' FTE under our own conversion, and those hours ' +
+          'may be worked by any number of individuals — part-year, seasonal, part-time. ' +
+          'Each is a whole person in the headcount and a fraction in the budget, so a ' +
+          'headcount exceeding an FTE total is arithmetic rather than a staffing finding.',
+          'Attribution is a second problem and a different one. It bites at department ' +
+          'level, where ' + strong(count(j.centralPeople)) + ' people across the year are ' +
+          'charged to ' + strong(niceName(j.centralDepartment)) + ' rather than the ' +
+          'department funding them. It does not rescue the city-wide subtraction: someone ' +
+          'booked centrally is still inside both city-wide totals, and in the latest ' +
+          'period ' + strong(count(j.centralPeoplePointInTime)) + ' people are booked ' +
+          'there at all.',
           'A real vacancy rate needs a position-level system showing filled and unfilled ' +
-          'posts at a date. That is an internal system, not an open dataset. The useful ' +
-          'output here is the question to take to whoever owns it.'
+          'posts at a date. That is an internal system, not an open dataset. What this ' +
+          'analysis produces instead is the specific question to take to whoever owns it, ' +
+          'and the ' + strong(count(j.titleNeverBudgeted)) + ' department-title pairs — ' +
+          strong(count(j.titleNeverBudgetedPeople)) + ' people — that genuinely have no ' +
+          'funded title anywhere.'
         ],
-        fields: 'budget FTE vs point-in-time headcount · populations do not match'
+        fields: 'budget FTE vs point-in-time headcount · different units, different scope'
+      },
+      {
+        q: 'Is the City on track against its budget?',
+        body: [
+          '<strong>Not from these two datasets — though it is answerable enough to be ' +
+          'dangerous.</strong> Read as raw totals, ' + strong(big(part.paid)) +
+          ' against ' + strong(big(part.budget)) + ' shows a ' +
+          strong(pct(part.naiveUnderspendPct)) + ' underspend. That is not a finding ' +
+          'about spending: it is ' +
+          strong((part.periodsInYear - part.periodsElapsed) + ' pay periods') +
+          ' that have not happened yet.',
+          'Expressing it against elapsed time removes that error and exposes another. ' +
+          strong(pct(part.burnPct)) + ' of the full ordinance has been paid against ' +
+          strong(pct(part.elapsedPct)) + ' of the year — but the numerator is payroll ' +
+          'cash including overtime, which the ordinance\u2019s position lines do not fund, ' +
+          'and the denominator carries ' + strong(big(part.nonPositionAmount)) + ' of ' +
+          'fringe and adjustment lines that never move through payroll at all. Against ' +
+          'position lines only the same figure is ' +
+          strong(pct(part.burnPctPositionsOnly)) + '.',
+          'Those two mismatches push in opposite directions and neither is quantified ' +
+          'here, so the honest output is a flag rather than a verdict. A real answer ' +
+          'needs the appropriation lines that fund overtime, which is a further dataset ' +
+          'again. ' + (hottest ? 'By department, ' + strong(niceName(hottest.name)) +
+            ' has consumed the largest share of its funded salary at ' +
+            strong(pct(hottest.burnShare)) + ', which is where to look first.' : '')
+        ].filter(Boolean),
+        fields: 'periods elapsed vs share of budget paid'
       },
       {
         q: 'Can these two datasets be joined at all?',
         body: [
           'Yes, but not as published. On the keys as they appear, ' +
-          strong(count(j.rawBudgetKeys)) + ' budget rows and ' + strong(count(j.rawActualKeys)) +
-          ' payroll rows produce ' + strong(j.rawMatches + ' matches') + '.',
+          strong(count(j.rawBudgetKeys)) + ' budget rows and ' +
+          strong(count(j.rawActualKeys)) + ' payroll rows produce ' +
+          strong(j.rawMatches + ' matches') + '.',
           'After stripping the leading system letter and leading zeros from both codes, ' +
-          strong(count(j.matched)) + ' match — ' + strong(pct(j.matchRate)) + ' of the budget ' +
-          'side. The residual is not noise: it is ' + strong(count(j.budgetOnlyRealPositions)) +
-          ' funded titles nobody was paid against, and ' + strong(count(j.actualOnly)) +
-          ' paid titles nobody budgeted.'
+          strong(count(j.matched)) + ' match — ' + strong(pct(j.matchRate)) + ' of the ' +
+          'budget side. The residue splits three ways: ' +
+          strong(count(j.titleBudgetedElsewhere)) + ' pairs whose title is funded under ' +
+          'another department, ' + strong(count(j.titleNeverBudgeted)) + ' with no funded ' +
+          'title anywhere, and ' + strong(count(j.budgetOnlyRealPositions)) + ' funded ' +
+          'titles nobody was paid against.'
         ],
         fields: 'department_code, title_code · normalised on both sides'
       },
@@ -522,59 +641,44 @@
           'positions — it mixes ' + strong(count(mixed.annual)) + ' annual positions with ' +
           strong(count(mixed.hourly)) + ' budgeted <em>hours</em> and a smaller number of ' +
           'budgeted months.',
-          'The conversion is ours: ' + esc(model.rules.fteRule).toLowerCase() + ' Change the ' +
-          'hours-per-year assumption and the FTE total moves, which is exactly why the ' +
-          'assumption belongs next to the figure.'
+          'The previous ordinance funded ' + strong(dec(model.priorBudget.fte, 0)) +
+          ' FTE, so the plan ' + (b.fte < model.priorBudget.fte ? 'shrank' : 'grew') +
+          ' by ' + strong(dec(Math.abs(b.fte - model.priorBudget.fte), 0)) +
+          ' while the money ' + (b.amount > model.priorBudget.amount ? 'rose' : 'fell') +
+          ' by ' + strong(big(Math.abs(b.amount - model.priorBudget.amount))) + '.'
         ],
-        fields: 'budgeted_unit, total_budgeted_unit · ' + count(model.rules.hoursPerFte) + ' hours per FTE'
+        fields: 'budgeted_unit, total_budgeted_unit · ' + count(r.hoursPerFte) + ' hours per FTE'
       },
       {
         q: 'How many people does the City employ?',
         body: [
           'Two defensible answers ' + strong(count(head.difference)) + ' apart. ' +
-          strong(count(head.annual)) + ' people were paid at some point during ' +
-          model.rules.focusYear + '; ' + strong(count(head.pointInTime)) + ' were paid in its ' +
-          'final period.',
-          'Neither is wrong. The annual figure answers "how many people did we pay this ' +
-          'year", which is the right question for cost and for turnover. The point-in-time ' +
-          'figure answers "how many people work here", which is the right one against a ' +
-          'budget. Reports that do not say which one they used are the reason two teams ' +
-          'quote different headcounts in the same meeting.'
+          strong(count(head.annual)) + ' people have been paid so far in ' + r.focusYear +
+          '; ' + strong(count(head.pointInTime)) + ' were paid in the latest period. Over ' +
+          'the last complete year the same gap was ' +
+          strong(count(head.priorDifference)) + ' people.',
+          'Neither is wrong. The wider figure answers “how many people did we pay”, which ' +
+          'is right for cost and turnover. The point-in-time figure answers “how many ' +
+          'people work here”, which is right against a budget. Reports that do not say ' +
+          'which they used are why two teams quote different headcounts in one meeting.'
         ],
-        fields: 'count(distinct employee_dataset_id) · whole year vs one period'
-      },
-      {
-        q: 'Which department has the largest gap between budgeted and paid?',
-        body: [
-          strong(niceName(biggest.name)) + ', at ' +
-          strong(big(gapOf(biggest))) + ' — ' + strong(big(biggest.budgetPositionAmount)) +
-          ' budgeted for positions against ' + strong(big(biggest.actualAmount)) +
-          ' paid.' + (biggest.name === bySize.name
-            ? ' It is also the largest department by payroll, so this ranking and a ranking ' +
-              'by size agree here; they will not always, which is why the gap is what gets ' +
-              'sorted.'
-            : ' The largest department by payroll is ' + strong(niceName(bySize.name)) +
-              ', which is not the same answer — ranking by size would have given it.'),
-          'The gap is also not overspend. Budgeted salary excludes overtime, and Project 2 ' +
-          'found overtime running to ' + strong('hundreds of millions') + ' across the City. ' +
-          'A responsible version of this comparison adds the appropriation lines that fund ' +
-          'overtime before drawing any conclusion, and that is a further dataset again.'
-        ],
-        fields: 'department_code · budgeted base salary vs all cash paid'
+        fields: 'count(distinct employee_dataset_id) · year to date vs one period'
       },
       {
         q: 'What would you actually deliver from this?',
         body: [
-          'Three written rules and a reconciliation report, not a dashboard. The rules are ' +
-          'the deliverable: how codes normalise between the two systems, what an FTE is, and ' +
-          'which headcount a given question wants.',
-          'Then the exception lists — the ' + strong(count(j.actualOnly)) + ' paid-but-not-' +
-          'budgeted titles and the ' + strong(count(j.budgetOnlyRealPositions)) +
-          ' budgeted-but-unpaid ones — go to the people who can explain them. Those two ' +
-          'lists are worth more than any chart, because every one of them is either a data ' +
-          'problem or a decision nobody wrote down.'
+          'Four written rules and a reconciliation report, not a dashboard. The rules are ' +
+          'the deliverable: how codes normalise between the systems, what an FTE is, which ' +
+          'headcount a question wants, and how to express a part-year actual against a ' +
+          'full-year plan.',
+          'Then the exception lists go to the people who can explain them — the ' +
+          strong(count(j.titleNeverBudgeted)) + ' pairs with no funded title, the ' +
+          strong(count(j.budgetOnlyRealPositions)) + ' funded titles nobody was paid ' +
+          'against, and the ' + strong(count(j.centralPeople)) + ' people booked to a ' +
+          'central account. Each is either a data problem or a decision nobody wrote down, ' +
+          'and both are worth more than a chart.'
         ],
-        fields: 'the output is a rule set and two exception lists'
+        fields: 'the output is a rule set and three exception lists'
       }
     ];
 
@@ -583,10 +687,10 @@
       var s = el('summary');
       s.appendChild(el('span', 'lab-q-text', item.q));
       d.appendChild(s);
-      var b2 = el('div', 'lab-q-body');
-      item.body.forEach(function (html) { paragraph(b2, html); });
-      b2.appendChild(el('p', 'lab-q-fields', item.fields));
-      d.appendChild(b2);
+      var body = el('div', 'lab-q-body');
+      item.body.forEach(function (html) { paragraph(body, html); });
+      body.appendChild(el('p', 'lab-q-fields', item.fields));
+      d.appendChild(body);
       if (i === 0) d.open = true;
       host.appendChild(d);
     });
@@ -620,9 +724,11 @@
         renderBuild(model);
         renderAsk(model);
         root.className = 'lab-status is-ok';
-        root.textContent = 'Self-check passed: ' + count(model.join.rawBudgetKeys) +
-          ' budget keys reconciled against ' + count(model.join.rawActualKeys) +
-          ' payroll keys across ' + model.departments.length + ' departments; ' +
+        root.textContent = 'Self-check passed: the ' + model.rules.focusYear +
+          ' ordinance (' + count(model.join.rawBudgetKeys) + ' keys) reconciled against ' +
+          count(model.join.rawActualKeys) + ' payroll keys across ' +
+          model.departments.length + ' departments, ' + model.rules.periodsElapsed +
+          ' of ' + model.rules.periodsInYear + ' pay periods elapsed; ' +
           model.findings.length + ' findings, each recomputed from the snapshot on load. ' +
           'Retrieved ' + model.source.retrieved + '.';
       })

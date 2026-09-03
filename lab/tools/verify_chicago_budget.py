@@ -25,7 +25,7 @@ import urllib.parse
 import urllib.request
 
 DOMAIN = "data.cityofchicago.org"
-BUDGET = "2bp7-w85v"
+BUDGET = "v2t2-vajc"    # 2026 ordinance
 PAYROLL = "dawh-m56b"
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -57,14 +57,17 @@ def get(dataset, params, timeout=300):
         "Accept": "application/json",
         "User-Agent": "canyonland-lab-verify/1.0"})
     last = None
-    for attempt in range(4):
+    for attempt in range(5):
         try:
             with urllib.request.urlopen(req, timeout=timeout) as r:
                 return json.load(r)
         except Exception as exc:                      # pragma: no cover - network
             last = exc
             print("    retry %d after %s" % (attempt + 1, exc))
-            time.sleep(4 * (attempt + 1))
+            # The portal rate-limits, and this verifier is deliberately
+            # query-heavy. Back off properly rather than giving up: a
+            # failure here would read as a data problem when it is ours.
+            time.sleep(15 * (attempt + 1))
     raise last
 
 
@@ -197,6 +200,33 @@ def main():
           "%s vs %s" % (format(annual, ","), format(pit, ",")))
 
     # ---- the refusal ------------------------------------------------------
+    # ---- the partial year -------------------------------------------------
+    print('\nHow much of the focus year has actually run')
+    cov = get(PAYROLL, {
+        "$select": "payroll_year,count(distinct payroll_period) as periods,"
+                   "sum(amount) as amt",
+        "$group": "payroll_year", "$order": "payroll_year"})
+    here = [r for r in cov if r["payroll_year"] == focus]
+    check("the focus year exists in the payroll data", len(here) == 1)
+    if here:
+        periods = int(num(here[0]["periods"]))
+        full = max(int(num(r["periods"])) for r in cov)
+        paid = round(float(here[0]["amt"]), 2)
+        check("elapsed pay periods", periods == d["rules"]["periodsElapsed"],
+              "%d at source, %d in snapshot" % (periods, d["rules"]["periodsElapsed"]))
+        check("periods in a full year", full == d["rules"]["periodsInYear"],
+              "%d at source" % full)
+        check("share of budget paid",
+              close(round(paid / d["budget"]["amount"] * 100, 1),
+                    d["actual"]["burnPct"], 0.15),
+              "%.1f%% at source, %.1f%% in snapshot"
+              % (paid / d["budget"]["amount"] * 100, d["actual"]["burnPct"]))
+        check("a part-year total is not presented as a full-year result",
+              d["rules"]["yearComplete"] == (periods >= full),
+              "%d of %d periods, marked %s"
+              % (periods, full,
+                 "complete" if d["rules"]["yearComplete"] else "partial"))
+
     print("\nThe claim that a vacancy rate is not available")
     vac = [f for f in d["findings"] if f["id"] == "not-a-vacancy-rate"][0]["numbers"]
     check("the page reports unmatched payroll large enough to justify refusing",
@@ -232,12 +262,85 @@ def main():
           "%s distinct vs %s row-sum"
           % (format(d["join"]["actualOnlyEmployees"], ","),
              format(d["join"]["actualOnlyRowSum"], ",")))
-    check("unmatched payroll is a material share of the workforce",
-          vac["actualOnlyEmployeesPointInTime"] / pit > 0.05,
-          "%.1f%% of point-in-time headcount"
-          % (vac["actualOnlyEmployeesPointInTime"] / pit * 100))
+    # The correction that matters: a title absent from one department is not a
+    # title absent from the budget. Re-derived from the source, because the
+    # first version of this page got exactly this wrong.
+    budgeted_titles = {normalise(r.get("title_code")) for r in bud}
+    unmatched_keys = norm_a - norm_b
+    elsewhere = {k for k in unmatched_keys if k[1] in budgeted_titles}
+    never = unmatched_keys - elsewhere
+    check("unmatched pairs whose title is funded elsewhere",
+          len(elsewhere) == d["join"]["titleBudgetedElsewhere"],
+          "%d at source, %d in snapshot"
+          % (len(elsewhere), d["join"]["titleBudgetedElsewhere"]))
+    check("unmatched pairs with no funded title anywhere",
+          len(never) == d["join"]["titleNeverBudgeted"],
+          "%d at source, %d in snapshot"
+          % (len(never), d["join"]["titleNeverBudgeted"]))
+    check("the two categories account for every unmatched pair",
+          len(elsewhere) + len(never) == d["join"]["actualOnly"])
+    check("attribution dominates absence, which is why the page says so",
+          len(elsewhere) > len(never) * 3,
+          "%d attributed elsewhere vs %d genuinely unbudgeted"
+          % (len(elsewhere), len(never)))
+    # Derived from the live rows, not read back. Asserting only that a
+    # stored percentage exceeds fifty would pass on any number above fifty,
+    # including a wrong one, while the page presents it as verified.
+    detail = get(PAYROLL, {
+        "$select": "department_code,department,title_code,sum(amount) as amt",
+        "$where": "payroll_year='" + focus + "'",
+        "$group": "department_code,department,title_code",
+        "$limit": "50000"})
+    unmatched_rows = [r for r in detail
+                      if (normalise(r.get("department_code")),
+                          normalise(r.get("title_code"))) in unmatched_keys]
+    unmatched_total = round(sum(num(r["amt"]) for r in unmatched_rows), 2)
+    central_rows = [r for r in unmatched_rows
+                    if "FINANCE GENERAL" in (r.get("department") or "").upper()]
+    central_total = round(sum(num(r["amt"]) for r in central_rows), 2)
+    central_share = (round(central_total / unmatched_total * 100, 1)
+                     if unmatched_total else 0.0)
+    check("unmatched payroll total recomputed from source",
+          close(unmatched_total, d["join"]["actualOnlyAmount"], 1.0),
+          "$%s at source, $%s in snapshot"
+          % (format(unmatched_total, ",.0f"),
+             format(d["join"]["actualOnlyAmount"], ",.0f")))
+    check("central-account amount recomputed from source",
+          close(central_total, d["join"]["centralAmount"], 1.0),
+          "$%s at source, $%s in snapshot"
+          % (format(central_total, ",.0f"),
+             format(d["join"]["centralAmount"], ",.0f")))
+    check("central-account share recomputed from source",
+          close(central_share, d["join"]["centralShareOfUnmatchedAmount"], 0.15),
+          "%.1f%% at source, %.1f%% in snapshot"
+          % (central_share, d["join"]["centralShareOfUnmatchedAmount"]))
+    check("the central department named on the page is the one in the data",
+          bool(central_rows) and (d["join"]["centralDepartment"] or "").upper()
+          == (central_rows[0].get("department") or "").upper(),
+          d["join"]["centralDepartment"] or "(none)")
+    check("the central account carries most of the unmatched money",
+          central_share > 50, "%.1f%%" % central_share)
+    check("unmatched payroll is large enough to matter",
+          d["join"]["actualOnlyAmount"] > 1_000_000,
+          "$%s across %s people"
+          % (format(d["join"]["actualOnlyAmount"], ",.0f"),
+             format(vac["actualOnlyEmployees"], ",")))
     check("the point-in-time unmatched count is a subset of the annual one",
           vac["actualOnlyEmployeesPointInTime"] <= vac["actualOnlyEmployees"])
+    # The page's city-wide argument is that an FTE is not a person. That
+    # rests on hourly budget lines existing at all, so it is asserted here
+    # rather than assumed from the prose.
+    hourly = [u for u in d["budget"]["byUnit"] if u["unit"].lower() == "hourly"]
+    check("the budget really does fund work in hours, not only positions",
+          bool(hourly) and hourly[0]["units"] > hourly[0]["fte"],
+          "%s hours -> %s FTE" % (format(hourly[0]["units"], ",.0f"),
+                                  format(hourly[0]["fte"], ",.0f"))
+          if hourly else "no hourly lines")
+    check("attribution is not offered as the city-wide explanation",
+          d["join"]["centralPeoplePointInTime"] <= d["join"]["centralPeople"],
+          "%s in the latest period vs %s across the year"
+          % (format(d["join"]["centralPeoplePointInTime"], ","),
+             format(d["join"]["centralPeople"], ",")))
     check("budget-only keys are split into positions and non-positions",
           d["join"]["budgetOnlyNonPosition"] + d["join"]["budgetOnlyRealPositions"]
           == d["join"]["budgetOnly"])

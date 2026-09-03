@@ -218,10 +218,15 @@ which is the second time enumerating those ids has caused exactly this bug.
 
 ## Lab Project 3 — budget against actual
 
-`/lab/budget-actual.html` reconciles the City's 2025 Budget Ordinance
-(positions and salaries, `2bp7-w85v`) against the payroll costing dataset
-Project 2 uses. It exists because Projects 1 and 2 each read a single source,
-and most real work is two systems that disagree.
+`/lab/budget-actual.html` reconciles the City's Budget Ordinance (positions and
+salaries) against the payroll costing dataset Project 2 uses. It exists because
+Projects 1 and 2 each read a single source, and most real work is two systems
+that disagree.
+
+**Currently on the 2026 ordinance (`v2t2-vajc`), with 2025 (`2bp7-w85v`) kept
+as a plan-against-plan comparison.** Moving to a new ordinance means moving the
+payroll year with it: a budget is a plan for a year, and comparing it against a
+different year's outcome answers a question nobody asked.
 
 ```
 py lab/tools/fetch_chicago_budget.py     # rebuild the snapshot (network)
@@ -232,17 +237,39 @@ The three projects make one argument and should keep making it: 1 shows the
 file can be read, 2 shows the numbers are right, 3 shows the judgement. Do not
 add a fourth that only repeats one of those.
 
-**Three rules carry the whole page, and all three are printed on it** rather
-than living in the code: how codes normalise between the systems (strip a
-leading `D`/`T`, then leading zeros), what an FTE is (2080 hours), and which
-headcount a question wants (point-in-time, not annual distinct). Each changes
-the answer, and none is in either dataset's documentation.
+**Four rules carry the whole page, and all four are printed on it** rather than
+living in the code: how codes normalise between the systems (strip a leading
+`D`/`T`, then leading zeros), what an FTE is (2080 hours), which headcount a
+question wants (point-in-time, not annual distinct), and how a part-year actual
+is expressed against a full-year plan. Each changes the answer, and none is in
+either dataset's documentation.
 
-**The page refuses to publish a vacancy rate.** The subtraction is available
-and wrong: 9,098 people — 27% of point-in-time headcount — are paid under
-titles absent from the ordinance, so the two sides do not cover the same
-population. That refusal is the most valuable thing on the page. Do not replace
-it with a number because one would look better.
+**The elapsed periods are read from the data, never hardcoded.** The focus year
+is usually incomplete — payroll refreshes quarterly, the ordinance lands in
+autumn — so dollars are shown as share-of-budget against share-of-year, not as
+a raw difference. Compared raw, 6 of 24 periods looks like a 71% underspend.
+
+**Unmatched payroll is attribution, not absence.** An earlier version of this
+page called it "titles that appear in no budget line at all", which was wrong:
+the join is on a department-title *pair*, and most of those titles are funded
+under a different department. Most of the residue is staff charged to
+`D99 - Finance General`, a central accounting code the ordinance does not carry
+as an operating department — confirmed by Rehan on 2026-09-03. The genuinely
+unbudgeted residue is two orders of magnitude smaller. The verifier re-derives
+that split from source; do not restate the old claim.
+
+**Attribution explains department-level mismatch and nothing above it.** A
+person booked centrally sits inside both city-wide totals, so it cannot justify
+refusing the city-wide subtraction. The reason that subtraction fails is that an
+FTE measures work and a headcount measures people: budgeted hours become
+fractional FTE but whole individuals. Do not reach for attribution again at city
+level — that mistake has already been made and corrected once.
+
+**The page refuses to publish a vacancy rate.** The subtraction is available and
+wrong: the two sides attribute the same people to different departments, so
+budget minus actual counts centrally-booked staff as missing. That refusal is
+the most valuable thing on the page. Do not replace it with a number because
+one would look better.
 
 Budget-only keys are split into real positions and non-positions (fringe
 benefits, adjustment pools carrying no headcount). Counting the latter as
