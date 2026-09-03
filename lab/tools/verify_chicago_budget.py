@@ -25,7 +25,7 @@ import urllib.parse
 import urllib.request
 
 DOMAIN = "data.cityofchicago.org"
-BUDGET = "2bp7-w85v"
+BUDGET = "v2t2-vajc"    # 2026 ordinance
 PAYROLL = "dawh-m56b"
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -197,6 +197,33 @@ def main():
           "%s vs %s" % (format(annual, ","), format(pit, ",")))
 
     # ---- the refusal ------------------------------------------------------
+    # ---- the partial year -------------------------------------------------
+    print('\nHow much of the focus year has actually run')
+    cov = get(PAYROLL, {
+        "$select": "payroll_year,count(distinct payroll_period) as periods,"
+                   "sum(amount) as amt",
+        "$group": "payroll_year", "$order": "payroll_year"})
+    here = [r for r in cov if r["payroll_year"] == focus]
+    check("the focus year exists in the payroll data", len(here) == 1)
+    if here:
+        periods = int(num(here[0]["periods"]))
+        full = max(int(num(r["periods"])) for r in cov)
+        paid = round(float(here[0]["amt"]), 2)
+        check("elapsed pay periods", periods == d["rules"]["periodsElapsed"],
+              "%d at source, %d in snapshot" % (periods, d["rules"]["periodsElapsed"]))
+        check("periods in a full year", full == d["rules"]["periodsInYear"],
+              "%d at source" % full)
+        check("share of budget paid",
+              close(round(paid / d["budget"]["amount"] * 100, 1),
+                    d["actual"]["burnPct"], 0.15),
+              "%.1f%% at source, %.1f%% in snapshot"
+              % (paid / d["budget"]["amount"] * 100, d["actual"]["burnPct"]))
+        check("a part-year total is not presented as a full-year result",
+              d["rules"]["yearComplete"] == (periods >= full),
+              "%d of %d periods, marked %s"
+              % (periods, full,
+                 "complete" if d["rules"]["yearComplete"] else "partial"))
+
     print("\nThe claim that a vacancy rate is not available")
     vac = [f for f in d["findings"] if f["id"] == "not-a-vacancy-rate"][0]["numbers"]
     check("the page reports unmatched payroll large enough to justify refusing",
@@ -232,10 +259,36 @@ def main():
           "%s distinct vs %s row-sum"
           % (format(d["join"]["actualOnlyEmployees"], ","),
              format(d["join"]["actualOnlyRowSum"], ",")))
-    check("unmatched payroll is a material share of the workforce",
-          vac["actualOnlyEmployeesPointInTime"] / pit > 0.05,
-          "%.1f%% of point-in-time headcount"
-          % (vac["actualOnlyEmployeesPointInTime"] / pit * 100))
+    # The correction that matters: a title absent from one department is not a
+    # title absent from the budget. Re-derived from the source, because the
+    # first version of this page got exactly this wrong.
+    budgeted_titles = {normalise(r.get("title_code")) for r in bud}
+    unmatched_keys = norm_a - norm_b
+    elsewhere = {k for k in unmatched_keys if k[1] in budgeted_titles}
+    never = unmatched_keys - elsewhere
+    check("unmatched pairs whose title is funded elsewhere",
+          len(elsewhere) == d["join"]["titleBudgetedElsewhere"],
+          "%d at source, %d in snapshot"
+          % (len(elsewhere), d["join"]["titleBudgetedElsewhere"]))
+    check("unmatched pairs with no funded title anywhere",
+          len(never) == d["join"]["titleNeverBudgeted"],
+          "%d at source, %d in snapshot"
+          % (len(never), d["join"]["titleNeverBudgeted"]))
+    check("the two categories account for every unmatched pair",
+          len(elsewhere) + len(never) == d["join"]["actualOnly"])
+    check("attribution dominates absence, which is why the page says so",
+          len(elsewhere) > len(never) * 3,
+          "%d attributed elsewhere vs %d genuinely unbudgeted"
+          % (len(elsewhere), len(never)))
+    check("the central account carries most of the unmatched money",
+          d["join"]["centralShareOfUnmatchedAmount"] > 50,
+          "%.1f%% via %s" % (d["join"]["centralShareOfUnmatchedAmount"],
+                             d["join"]["centralDepartment"] or "?"))
+    check("unmatched payroll is large enough to matter",
+          d["join"]["actualOnlyAmount"] > 1_000_000,
+          "$%s across %s people"
+          % (format(d["join"]["actualOnlyAmount"], ",.0f"),
+             format(vac["actualOnlyEmployees"], ",")))
     check("the point-in-time unmatched count is a subset of the annual one",
           vac["actualOnlyEmployeesPointInTime"] <= vac["actualOnlyEmployees"])
     check("budget-only keys are split into positions and non-positions",
